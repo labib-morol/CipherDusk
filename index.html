@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CipherDusk — Decision Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --or:#ff6b2b;--or2:rgba(255,107,43,.12);--or3:rgba(255,107,43,.06);
+  --bg:#07070a;--s1:#0d0d12;--s2:#111118;
+  --bd:#1c1c26;--bd2:#252535;--bd3:#2e2e42;
+  --tx:#e8e0d0;--mu:#4a4a60;--mu2:#1e1e2a;--mu3:#333348;
+  --gr:#22c55e;--cy:#00d4aa;
+}
+html,body{width:100%;min-height:100vh;background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
+canvas{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;}
+
+/* —— LAYOUT —— */
+#shell{position:relative;z-index:1;display:flex;min-height:100vh;}
+#left-col{width:268px;flex-shrink:0;padding:1.5rem 1.1rem;border-right:.5px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;}
+#center-col{flex:1;padding:2rem 2rem 6rem;min-width:0;max-width:600px;}
+#right-col{width:200px;flex-shrink:0;padding:1.5rem 1rem;border-left:.5px solid var(--bd);display:flex;flex-direction:column;gap:1rem;}
+
+/* —— LEFT —— */
+.logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.06em;margin-bottom:.15rem;flex-shrink:0;}
+.logo span{color:var(--or);}
+.logo-badge{font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--mu);display:block;flex-shrink:0;}
+#insight-panel{flex:1;display:flex;flex-direction:column;gap:.5rem;margin:1rem 0;overflow-y:auto;min-height:0;}
+.insight-card{background:var(--s1);border:.5px solid var(--bd);padding:.8rem;animation:insightSlide .35s ease both;}
+.insight-card.hot{border-color:var(--or);background:var(--or3);}
+.insight-card:nth-child(1){animation-delay:.02s}
+.insight-card:nth-child(2){animation-delay:.1s}
+.insight-card:nth-child(3){animation-delay:.18s}
+.insight-card:nth-child(4){animation-delay:.26s}
+.insight-icon{font-size:15px;margin-bottom:.3rem;}
+.insight-title{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--or);margin-bottom:.35rem;}
+.insight-body{font-size:11px;line-height:1.6;color:#9a9890;}
+.hist-divider{height:.5px;background:var(--bd);margin:0 0 .75rem;flex-shrink:0;}
+.hist-title{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--mu);padding-bottom:.35rem;border-bottom:.5px solid var(--bd);margin-bottom:.5rem;flex-shrink:0;}
+#hist-list{overflow-y:auto;max-height:170px;flex-shrink:0;}
+.hist-item{padding:.45rem .6rem;border:.5px solid var(--bd);margin-bottom:.3rem;cursor:pointer;font-size:10px;color:var(--mu);transition:all .2s;line-height:1.4;}
+.hist-item:hover{border-color:var(--or);color:var(--tx);background:var(--or3);}
+.hi-date{font-family:'Space Mono',monospace;font-size:7px;color:var(--mu);margin-bottom:2px;}
+.no-hist{font-size:10px;color:var(--mu3);font-style:italic;padding:.3rem 0;text-align:center;}
+
+/* —— CENTER hero —— */
+.hero{margin-bottom:2rem;}
+.wordmark{font-family:'Bebas Neue',sans-serif;font-size:clamp(52px,7vw,80px);line-height:.88;letter-spacing:.02em;position:relative;display:inline-block;}
+.wordmark .acc{color:var(--or);}
+.wordmark::before,.wordmark::after{content:attr(data-text);position:absolute;inset:0;font-family:'Bebas Neue',sans-serif;font-size:inherit;line-height:inherit;opacity:0;}
+.wordmark::before{color:#0ff;left:2px;animation:glitch1 5s infinite;}
+.wordmark::after{color:var(--or);left:-2px;animation:glitch2 5s infinite;}
+.hero-sub{font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--mu);margin-top:.7rem;overflow:hidden;white-space:nowrap;width:0;animation:typewriter 2s steps(36,end) .4s forwards;}
+.hero-sub::after{content:'_';color:var(--or);animation:blink .7s step-end infinite;}
+.hero-line{height:2px;background:linear-gradient(90deg,var(--or),transparent);margin-top:.9rem;transform:scaleX(0);transform-origin:left;animation:growW .9s ease 2.4s forwards;}
+.vs-tag{display:inline-flex;align-items:center;gap:.5rem;margin-top:.65rem;font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);}
+.vs-dot{width:6px;height:6px;border-radius:50%;background:var(--or);animation:glow 1.4s ease-in-out infinite;}
+
+/* —— PROGRESS —— */
+.prog-wrap{margin-bottom:1.75rem;}
+.prog-track{display:flex;align-items:center;}
+.pd{width:8px;height:8px;border-radius:50%;background:var(--mu2);flex-shrink:0;transition:all .4s;}
+.pd.done{background:var(--or);}
+.pd.active{background:var(--or);box-shadow:0 0 10px var(--or);animation:glow 1.3s ease-in-out infinite;}
+.pd.deep{background:var(--gr);box-shadow:0 0 10px var(--gr);animation:glowGr 1.3s ease-in-out infinite;}
+.ps{flex:1;height:2px;background:var(--mu2);position:relative;overflow:hidden;}
+.ps.done{background:var(--or);}
+.ps.deep{background:var(--gr);}
+.ps.active::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--or),transparent);animation:sweep 1.8s ease-in-out infinite;}
+.pl{display:flex;justify-content:space-between;margin-top:.4rem;}
+.pl-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu2);flex:1;text-align:center;transition:color .3s;}
+.pl-label.active{color:var(--or);}
+.pl-label.done{color:var(--mu);}
+.pl-label.deep{color:var(--gr);}
+
+/* —— QUESTION CARD —— */
+.q-card{background:var(--s1);border:.5px solid var(--bd);padding:1.4rem;margin-bottom:1rem;animation:fadeUp .35s ease both;}
+.q-card.exiting{animation:exitUp .18s ease forwards;}
+.rnd-hdr{font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--or);margin-bottom:.9rem;display:flex;align-items:center;gap:.45rem;}
+.rnd-dot{width:6px;height:6px;border-radius:50%;background:var(--or);box-shadow:0 0 8px var(--or);animation:glow 1.3s ease-in-out infinite;flex-shrink:0;}
+.round-badge{margin-left:auto;font-size:8.5px;color:var(--mu);border:.5px solid var(--bd2);padding:2px 6px;flex-shrink:0;}
+.decision-echo{font-family:'Space Mono',monospace;font-size:9.5px;color:var(--mu);margin-bottom:.9rem;padding:.45rem;border-left:2px solid var(--bd2);line-height:1.5;}
+.q-text{font-size:15px;line-height:1.75;color:var(--tx);margin-bottom:1.1rem;min-height:1.8em;}
+.thinking{display:flex;gap:6px;padding:.4rem 0;align-items:center;}
+.thinking span{width:6px;height:6px;border-radius:50%;background:var(--or);animation:think .9s ease-in-out infinite;}
+.thinking span:nth-child(2){animation-delay:.15s}
+.thinking span:nth-child(3){animation-delay:.3s}
+
+/* —— OPTIONS —— */
+.options-grid{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.9rem;}
+.opt-card{display:flex;align-items:center;gap:.9rem;padding:.75rem 1rem;background:var(--s2);border:.5px solid var(--bd2);cursor:pointer;transition:all .2s;animation:optIn .3s ease both;text-align:left;width:100%;}
+.opt-card:nth-child(1){animation-delay:.04s}
+.opt-card:nth-child(2){animation-delay:.1s}
+.opt-card:nth-child(3){animation-delay:.16s}
+.opt-card:nth-child(4){animation-delay:.22s}
+.opt-card:hover{border-color:var(--or);background:var(--or2);transform:translateX(4px);}
+.opt-card.selected{border-color:var(--or);background:var(--or2);transform:translateX(6px);}
+.opt-card.selected .opt-key{color:var(--bg);background:var(--or);}
+.opt-key{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;width:24px;height:24px;border-radius:2px;display:flex;align-items:center;justify-content:center;background:var(--mu3);color:var(--or);flex-shrink:0;transition:all .2s;}
+.opt-text{font-size:13px;color:var(--tx);line-height:1.4;}
+.manual-wrap{overflow:hidden;max-height:0;transition:max-height .35s ease,opacity .25s ease;opacity:0;}
+.manual-wrap.open{max-height:200px;opacity:1;}
+.lbl{font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--mu);margin-bottom:.45rem;display:block;}
+textarea{width:100%;min-height:75px;background:var(--s2);border:.5px solid var(--bd2);color:var(--tx);font-family:'DM Sans',sans-serif;font-size:13.5px;line-height:1.7;padding:.7rem .9rem;resize:vertical;outline:none;transition:border-color .2s,box-shadow .2s;}
+textarea:focus{border-color:var(--or);box-shadow:0 0 0 2px rgba(255,107,43,.1);}
+textarea::placeholder{color:var(--mu3);}
+.upload-zone{border:.5px dashed var(--bd2);padding:.6rem .9rem;display:flex;align-items:center;gap:.65rem;cursor:pointer;transition:border-color .2s;margin-bottom:.7rem;}
+.upload-zone:hover{border-color:var(--or);}
+.upload-text{font-size:10.5px;color:var(--mu);}
+.upload-name{font-family:'Space Mono',monospace;font-size:9.5px;color:var(--or);}
+input[type=file]{display:none;}
+
+/* —— BUTTONS —— */
+.btn{display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.7rem 1.4rem;background:transparent;border:.5px solid var(--bd2);color:var(--tx);font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;width:100%;margin-top:.7rem;}
+.btn:hover:not(:disabled){background:var(--tx);color:var(--bg);}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.btn.primary{border-color:var(--or);color:var(--or);}
+.btn.primary:hover:not(:disabled){background:var(--or);color:var(--bg);}
+.btn.green{border-color:var(--gr);color:var(--gr);}
+.btn.green:hover:not(:disabled){background:var(--gr);color:var(--bg);}
+.btn.sm{width:auto;padding:.45rem .9rem;font-size:9.5px;margin-top:0;}
+.btn-row{display:flex;gap:.5rem;margin-top:.7rem;}
+.spin{width:10px;height:10px;border:1.5px solid var(--mu2);border-top-color:var(--or);border-radius:50%;animation:rotate .7s linear infinite;flex-shrink:0;}
+
+/* —— VERDICT —— */
+.verdict-card{background:var(--s1);border:.5px solid var(--or);padding:1.6rem;margin-bottom:1rem;animation:fadeUp .45s ease both;position:relative;overflow:hidden;}
+.verdict-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--or3),transparent);pointer-events:none;}
+.verdict-title{font-family:'Bebas Neue',sans-serif;font-size:44px;color:var(--or);line-height:1;margin-bottom:.9rem;position:relative;}
+.verdict-title::before,.verdict-title::after{content:'VERDICT';position:absolute;inset:0;font-family:'Bebas Neue',sans-serif;font-size:inherit;}
+.verdict-title::before{color:#0ff;left:2px;animation:glitch1 3s infinite;}
+.verdict-title::after{color:var(--or);left:-2px;opacity:.4;animation:glitch2 3s infinite;}
+.deep-verdict-card{background:var(--s1);border:.5px solid var(--gr);padding:1.6rem;margin-bottom:1rem;animation:fadeUp .45s ease both;position:relative;overflow:hidden;}
+.deep-verdict-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(34,197,94,.06),transparent);pointer-events:none;}
+.deep-verdict-title{font-family:'Bebas Neue',sans-serif;font-size:44px;color:var(--gr);line-height:1;margin-bottom:.9rem;}
+.verdict-section{margin-bottom:.9rem;}
+.verdict-label{font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--or);margin-bottom:.35rem;}
+.verdict-label.green{color:var(--gr);}
+.verdict-text{font-size:13.5px;line-height:1.8;color:#ccc8be;white-space:pre-wrap;}
+
+/* —— CONFIDENCE —— */
+.conf-bar-wrap{margin-bottom:1.25rem;}
+.conf-label{font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--mu);margin-bottom:.35rem;display:flex;justify-content:space-between;}
+.conf-track{height:3px;background:var(--mu2);position:relative;overflow:hidden;}
+.conf-fill{height:100%;background:var(--or);box-shadow:0 0 8px var(--or);}
+
+/* —— EARNED —— */
+.earned{border:.5px solid var(--or);padding:2.5rem 1.75rem;text-align:center;position:relative;overflow:hidden;animation:fadeUp .5s ease both;margin-bottom:1rem;}
+.earned::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,107,43,.07),transparent);animation:shimmer 2.5s ease-in-out infinite;}
+.earned-word{font-family:'Bebas Neue',sans-serif;font-size:66px;color:var(--or);line-height:1;}
+.earned-sub{font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--mu);margin-top:.4rem;}
+
+/* —— RIGHT sys —— */
+.sys-panel{display:flex;flex-direction:column;gap:.6rem;}
+.sys-title{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:var(--mu);padding-bottom:.35rem;border-bottom:.5px solid var(--bd);margin-bottom:.2rem;}
+.sys-row{display:flex;justify-content:space-between;align-items:center;}
+.sys-key{color:var(--mu);font-family:'Space Mono',monospace;font-size:8px;}
+.sys-val{color:var(--or);font-family:'Space Mono',monospace;font-size:8px;}
+.tip-card{background:var(--s1);border:.5px solid var(--bd);padding:.8rem;margin-top:.5rem;}
+.tip-title{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--mu);margin-bottom:.4rem;}
+.tip-body{font-size:10.5px;line-height:1.65;color:#7a7870;transition:opacity .3s;}
+
+/* —— MOBILE —— */
+.mobile-bar{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(7,7,10,.95);border-top:.5px solid var(--bd);padding:.7rem 1.2rem;align-items:center;justify-content:space-between;z-index:10;}
+@media(max-width:600px){.mobile-bar{display:flex;}}
+.mobile-bar-logo{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:.06em;}
+.mobile-bar-logo span{color:var(--or);}
+.mobile-bar-stage{font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);}
+
+.footer{text-align:center;padding-top:1.75rem;margin-top:1.75rem;border-top:.5px solid var(--bd);font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.14em;color:var(--mu);}
+.footer span{color:var(--or);}
+.streaming-cursor::after{content:'▊';color:var(--or);animation:blink .6s step-end infinite;}
+
+@media(max-width:1100px){#right-col{display:none;}}
+@media(max-width:750px){#left-col{width:200px;}}
+@media(max-width:600px){#left-col{display:none;}#center-col{padding:1.5rem 1rem 5rem;}}
+
+/* —— ONBOARDING —— */
+.onboarding{margin-bottom:1.25rem;display:flex;flex-direction:column;gap:.5rem;}
+.ob-step{display:flex;align-items:flex-start;gap:.75rem;}
+.ob-num{font-family:'Space Mono',monospace;font-size:10px;color:var(--or);flex-shrink:0;margin-top:2px;}
+.ob-text{font-size:13px;color:var(--mu);line-height:1.5;}
+
+/* —— KEYFRAMES —— */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes exitUp{to{opacity:0;transform:translateY(-10px)}}
+@keyframes insightSlide{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+@keyframes optIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+@keyframes growW{to{transform:scaleX(1)}}
+@keyframes glow{0%,100%{box-shadow:0 0 5px var(--or)}50%{box-shadow:0 0 18px var(--or)}}
+@keyframes glowGr{0%,100%{box-shadow:0 0 5px var(--gr)}50%{box-shadow:0 0 18px var(--gr)}}
+@keyframes sweep{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes rotate{to{transform:rotate(360deg)}}
+@keyframes shimmer{0%{left:-100%}100%{left:200%}}
+@keyframes typewriter{to{width:100%}}
+@keyframes glitch1{0%,93%,100%{opacity:0;transform:none}94%{opacity:.55;transform:translate(-3px,1px) skewX(-5deg)}96%{opacity:.3;transform:translate(3px,-1px)}98%{opacity:.6;transform:translate(-1px,2px)}}
+@keyframes glitch2{0%,90%,100%{opacity:0;transform:none}91%{opacity:.45;transform:translate(3px,-2px) skewX(4deg)}93%{opacity:.25;transform:translate(-2px,1px)}95%{opacity:.55;transform:translate(2px,-1px)}}
+@keyframes think{0%,100%{transform:scale(1);opacity:.3}50%{transform:scale(1.4);opacity:1}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<div id="shell">
+  <div id="left-col">
+    <div class="logo">Cipher<span>Dusk</span></div>
+    <span class="logo-badge">Decision Intelligence</span>
+    <div id="insight-panel">
+      <div class="insight-card">
+        <div class="insight-icon">🧠</div>
+        <div class="insight-title">Insight Panel</div>
+        <div class="insight-body">CipherDusk will surface cognitive biases and psychological patterns here as you answer.</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon">⚔️</div>
+        <div class="insight-title">How It Works</div>
+        <div class="insight-body">Answer honestly. Minimum 2 rounds before verdict. The friction is the point.</div>
+      </div>
+    </div>
+    <div class="hist-divider"></div>
+    <div class="hist-title">Past Decisions</div>
+    <div id="hist-list"></div>
+  </div>
+
+  <div id="center-col">
+    <div class="hero">
+      <div class="wordmark" data-text="THINK DEEPER.">THINK<br><span class="acc">DEEPER.</span></div>
+      <div class="hero-sub">Your decision. CipherDusk's interrogation. One winner.</div>
+      <div class="hero-line"></div>
+      <div class="vs-tag"><div class="vs-dot"></div>You vs CipherDusk — Battle for the right decision</div>
+    </div>
+    <div id="panel"></div>
+    <div class="footer">
+      <span>CipherDusk</span> &nbsp;·&nbsp; Decision Intelligence System &nbsp;·&nbsp;
+      Friction by Design &nbsp;·&nbsp; Hackathon 2025 &nbsp;·&nbsp; <span>Think Deeper.</span>
+    </div>
+  </div>
+
+  <div id="right-col">
+    <div class="sys-panel">
+      <div class="sys-title">// System</div>
+      <div class="sys-row"><span class="sys-key">Model</span><span class="sys-val">Llama-3.1-8B</span></div>
+      <div class="sys-row"><span class="sys-key">Mode</span><span class="sys-val" id="sys-mode">STANDBY</span></div>
+      <div class="sys-row"><span class="sys-key">Round</span><span class="sys-val" id="sys-round">—</span></div>
+      <div class="sys-row"><span class="sys-key">Confidence</span><span class="sys-val" id="sys-conf">—</span></div>
+    </div>
+    <div class="tip-card">
+      <div class="tip-title">// Remember</div>
+      <div class="tip-body" id="tip-body">The friction is the point. Slow decisions beat fast mistakes.</div>
+    </div>
+  </div>
+</div>
+
+<div class="mobile-bar">
+  <div class="mobile-bar-logo">Cipher<span>Dusk</span></div>
+  <div class="mobile-bar-stage" id="mobile-stage-label">Ready</div>
+</div>
+
+<script>
+/* ============================================================
+   CANVAS — ROBOT FIGHT (right side of screen)
+   YOU (left, orange) vs CIPHERDUSK (right, cyan)
+   They fight over the DECISION gem
+============================================================ */
+(function(){
+  const cv=document.getElementById('bg');
+  const cx=cv.getContext('2d');
+  let W,H,pts=[],impacts=[];
+  let lastImpact=0;
+  let rainLines=[],binaryPts=[];
+  let userWon=false,victoryT=0;
+  let comboPhaseTrig=0,caseShattering=false;
+  let gemX=0,gemY=0;
+  let lJump=0,rJump=0;
+
+  function resize(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;}
+  function mkPt(){return{x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.2+.2,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,a:Math.random()*.3+.06,fl:Math.random()*Math.PI*2,sp:Math.random()*.025+.006};}
+  function mkRain(){return{x:Math.random()*W,y:-Math.random()*H,sp:Math.random()*4+2,len:Math.random()*90+40,a:Math.random()*.35+.35};}
+  function mkBit(){return{x:Math.random()*W,y:-Math.random()*H,sp:Math.random()*2+.6,ch:Math.random()>.5?'1':'0',a:Math.random()*.4+.4,sz:Math.random()*9+9};}
+  function init(){resize();pts=Array.from({length:55},mkPt);rainLines=Array.from({length:70},mkRain);binaryPts=Array.from({length:50},mkBit);}
+
+  function lerp(a,b,t){return a+(b-a)*Math.min(1,Math.max(0,t));}
+  function easeOut(t){return 1-(1-t)*(1-t);}
+  function easeIn(t){return t*t;}
+
+  let hitBits=[];
+  function spawnImpact(x,y){
+    for(let i=0;i<18;i++){
+      const a=Math.random()*Math.PI*2,sp=Math.random()*6+2;
+      impacts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-1.5,alpha:.9,size:Math.random()*3.5+.8,cy:Math.random()>.5});
+    }
+    /* Binary digits burst from hit point */
+    for(let i=0;i<5;i++){
+      const vx=(Math.random()-.5)*4,vy=-(Math.random()*4+2);
+      hitBits.push({x:x+(Math.random()-.5)*12,y,vx,vy,alpha:1,ch:Math.random()>.5?'1':'0',sz:Math.floor(Math.random()*4)+9});
+    }
+  }
+
+  /* ── LIMB DRAWING (robot local space, called after cx.scale) ── */
+  function drawArm(mainC,bx,by,angle,ext){
+    const L=26+ext*28;
+    cx.strokeStyle=`${mainC}.6)`;cx.fillStyle=`${mainC}.1)`;cx.lineWidth=1.3;
+    cx.save();cx.translate(bx,by);cx.rotate(angle);cx.beginPath();cx.rect(-5,0,10,L*.55);cx.fill();cx.stroke();cx.restore();
+    const ex=bx+Math.cos(angle)*L*.52,ey=by+Math.sin(angle)*L*.52;
+    const fa=angle+(ext>.35?-.3:.3);
+    cx.save();cx.translate(ex,ey);cx.rotate(fa);cx.beginPath();cx.rect(-4,0,8,L*.5);cx.fill();cx.stroke();cx.restore();
+    const fx=ex+Math.cos(fa)*L*.46,fy=ey+Math.sin(fa)*L*.46;
+    cx.fillStyle=`${mainC}.78)`;cx.strokeStyle=`${mainC}.95)`;
+    cx.beginPath();cx.rect(fx-6,fy-6,12,12);cx.fill();cx.stroke();
+    if(ext>.18){
+      const dir=Math.atan2(fy-by,fx-bx),bl=48+ext*52;
+      const gr=cx.createLinearGradient(fx,fy,fx+Math.cos(dir)*bl,fy+Math.sin(dir)*bl);
+      gr.addColorStop(0,`${mainC}${.12+.5*ext})`);gr.addColorStop(1,`${mainC}0)`);
+      cx.strokeStyle=gr;cx.lineWidth=1.5+ext*4.5;
+      cx.beginPath();cx.moveTo(fx,fy);cx.lineTo(fx+Math.cos(dir)*bl,fy+Math.sin(dir)*bl);cx.stroke();
+    }
+  }
+
+  function drawLeg(mainC,bx,by,angle,kExt){
+    const L=32+kExt*18;
+    cx.strokeStyle=`${mainC}.6)`;cx.fillStyle=`${mainC}.1)`;cx.lineWidth=1.3;
+    cx.save();cx.translate(bx,by);cx.rotate(angle);cx.beginPath();cx.rect(-6,0,12,L*.52);cx.fill();cx.stroke();cx.restore();
+    const kx=bx+Math.cos(angle)*L*.5,ky=by+Math.sin(angle)*L*.5;
+    const sa=angle+(kExt>.15?-.52:.36);
+    cx.save();cx.translate(kx,ky);cx.rotate(sa);cx.beginPath();cx.rect(-5,0,10,L*.5);cx.fill();cx.stroke();cx.restore();
+    const ftX=kx+Math.cos(sa)*L*.46,ftY=ky+Math.sin(sa)*L*.46;
+    cx.save();cx.translate(ftX,ftY);cx.rotate(sa-.2);cx.beginPath();cx.rect(-10,-5,20,9);cx.fill();cx.stroke();cx.restore();
+  }
+
+  /* ── ROBOT WRAPPER: position, flip, fall, recoil, then draw body with free limbs ── */
+  function robot(x,y,sc,flip,t,L,recoil,fallen){
+    cx.save();cx.translate(x,y);
+    if(fallen>0){
+      const fd=flip?1:-1;
+      cx.translate(fd*fallen*38,fallen*48);
+      cx.translate(0,45*sc);cx.rotate(fd*fallen*Math.PI*.44);cx.translate(0,-45*sc);
+    } else if(recoil>.05){
+      cx.translate(recoil*(flip?11:-11),recoil*-4);
+      cx.translate(0,50*sc);cx.rotate(recoil*.22*(flip?1:-1));cx.translate(0,-50*sc);
+    }
+    if(flip)cx.scale(-1,1);cx.scale(sc,sc);
+    const mainC=flip?'rgba(0,212,170,':'rgba(255,107,43,';
+    const eyeA=.65+.35*Math.abs(Math.sin(t*2.6));
+    const eyeC=flip?`rgba(0,255,200,${eyeA})`:`rgba(255,150,60,${eyeA})`;
+    drawLeg(mainC,-10,4,L.lLA,L.lLE);drawLeg(mainC,10,4,L.rLA,L.rLE);
+    cx.strokeStyle=`${mainC}.6)`;cx.fillStyle=`${mainC}.1)`;cx.lineWidth=1.3;
+    cx.beginPath();cx.rect(-23,-50,46,54);cx.fill();cx.stroke();
+    cx.strokeStyle=`${mainC}.22)`;cx.lineWidth=.6;cx.beginPath();cx.rect(-13,-40,26,17);cx.stroke();
+    const hA=.35+.35*Math.abs(Math.sin(t*(flip?2.6:1.9)));
+    cx.fillStyle=`${mainC}${hA})`;cx.beginPath();cx.arc(0,-32,4.5,0,Math.PI*2);cx.fill();
+    if(flip){cx.strokeStyle='rgba(0,212,170,.15)';cx.lineWidth=.5;for(let i=1;i<4;i++){cx.beginPath();cx.moveTo(-13+i*6.5,-40);cx.lineTo(-13+i*6.5,-23);cx.stroke();}cx.beginPath();cx.moveTo(-13,-31.5);cx.lineTo(13,-31.5);cx.stroke();}
+    drawArm(mainC,-23,-45,L.lAA,L.lAE);drawArm(mainC,23,-45,L.rAA,L.rAE);
+    const hs=recoil*-9;
+    cx.strokeStyle=`${mainC}.6)`;cx.fillStyle=`${mainC}.1)`;cx.lineWidth=1.3;
+    cx.beginPath();cx.rect(-17,-88+hs,34,28);cx.fill();cx.stroke();
+    cx.beginPath();cx.moveTo(0,-88+hs);cx.lineTo(0,-104+hs);cx.strokeStyle=`${mainC}.45)`;cx.lineWidth=1;cx.stroke();
+    cx.beginPath();cx.arc(0,-107+hs,3.5,0,Math.PI*2);cx.fillStyle=`${mainC}${.5+.5*Math.abs(Math.sin(t*(flip?5:3)))})`;cx.fill();
+    if(flip){cx.beginPath();cx.moveTo(-11,-88+hs);cx.lineTo(-16,-98+hs);cx.strokeStyle='rgba(0,212,170,.3)';cx.stroke();cx.beginPath();cx.arc(-16,-101+hs,2.5,0,Math.PI*2);cx.fillStyle=`rgba(0,212,170,${.3+.3*Math.abs(Math.sin(t*7))})`;cx.fill();}
+    cx.fillStyle=eyeC;cx.beginPath();cx.rect(-12,-80+hs,8,8);cx.fill();cx.beginPath();cx.rect(4,-80+hs,8,8);cx.fill();
+    if(flip){const sl=(t*35)%8;cx.fillStyle='rgba(0,0,0,.45)';cx.beginPath();cx.rect(-12,-80+hs+sl,8,2);cx.fill();cx.beginPath();cx.rect(4,-80+hs+sl,8,2);cx.fill();}
+    const au=cx.createRadialGradient(0,-20,5,0,-20,88);au.addColorStop(0,`${mainC}.09)`);au.addColorStop(1,`${mainC}0)`);cx.fillStyle=au;cx.beginPath();cx.arc(0,-20,88,0,Math.PI*2);cx.fill();
+    cx.restore();
+  }
+
+  /* ── LIMB CHOREOGRAPHY — Real Steel style, CYCLE=30s ── */
+  /* angle convention: 0=toward opponent, PI/2=down, -PI/2=up, PI=away */
+  function calcLimbs(t,tp,isCD){
+    const PI=Math.PI;
+    let lAA=PI*.72,lAE=.28,rAA=PI*.22,rAE=.18,lLA=PI/2+.22,lLE=0,rLA=PI/2-.15,rLE=0;
+    const off=isCD?PI*.65:0,koff=isCD?PI*.5:PI;
+
+    if(tp<2.5){
+      /* WALK-IN */
+      const w=t*2.2;lLA=PI/2+Math.sin(w*PI*2)*.52;rLA=PI/2-Math.sin(w*PI*2)*.52;
+      rAA=PI*.28;lAA=PI*.62;rAE=0;lAE=0;
+    } else if(tp<4.5){
+      /* FEINT / CIRCLE — short arm twitches, weight shift */
+      const cp=tp-2.5,feint=Math.sin(cp*3.5+off)*.4;
+      rAA=PI*.22+feint*.5;rAE=Math.max(0,feint)*.35;lAA=PI*.68;
+      lLA=PI/2+.2+Math.sin(cp*2.5)*.3;rLA=PI/2-.15+Math.sin(cp*2.5)*.15;
+    } else if(tp<8.5){
+      /* JAB → CROSS → LEFT HOOK → RIGHT UPPERCUT */
+      const cp=tp-4.5;
+      if(!isCD){
+        if(cp<1.2){const p=Math.sin(cp/1.2*PI);rAA=lerp(PI*.22,-.04,p);rAE=p*.92;lAA=PI*.7;lAE=.26;}
+        else if(cp<2.5){const p=Math.sin((cp-1.2)/1.3*PI);rAA=lerp(PI*.26,-.08,p);rAE=p*.98;lAA=lerp(PI*.7,PI*.32,p);lAE=.18;}
+        else if(cp<3.5){const p=Math.sin((cp-2.5)/1.0*PI);lAA=lerp(PI*.65,PI*.08,p);lAE=p*.92;rAA=PI*.32;rAE=.12;}
+        else{const p=Math.sin((cp-3.5)/1.0*PI);rAA=lerp(PI*.68,-PI*.3,p);rAE=p*.95;lAA=PI*.55;lAE=.24;}
+        rLA=PI/2-.18;lLA=PI/2+.22;
+      } else {
+        if(cp<1.2){lAA=PI*.28;lAE=.62;rAA=PI*.2;rAE=.18;}         /* block jab */
+        else if(cp<2.5){lAA=PI*.24;lAE=.68;rAA=PI*.22;rAE=.22;}    /* block cross */
+        else if(cp<3.5){const p=Math.min(1,cp-2.5);rAA=lerp(PI*.2,PI*.6,p);rAE=.1;lAA=PI*.42;lAE=.3;}  /* takes hook */
+        else{lAA=PI*.42;lAE=.22;rAA=PI*.4;rAE=.15;}                /* takes uppercut */
+        rLA=PI/2+.18;lLA=PI/2-.15;
+      }
+    } else if(tp<11.5){
+      /* CD COUNTER — wide hook → body shot → cross */
+      const cp=tp-8.5;
+      if(isCD){
+        if(cp<1.5){const p=Math.sin(cp/1.5*PI);rAA=lerp(PI*.6,PI*.04,p);rAE=p*.98;lAA=PI*.65;lAE=.2;}
+        else if(cp<2.8){const p=Math.sin((cp-1.5)/1.3*PI);rAA=lerp(PI*.28,PI*.62,p);rAE=p*.75;lAA=PI*.62;lAE=.15;}
+        else{const p=Math.sin((cp-2.8)/.9*PI);rAA=lerp(PI*.28,-.06,p);rAE=p*.95;lAA=PI*.58;lAE=.22;}
+      } else {
+        if(cp<1.5){const p=Math.min(1,cp/1.5);rAA=lerp(PI*.2,PI*.7,p);rAE=lerp(.18,.06,p);lAA=lerp(PI*.72,PI*.92,p);lAE=.22;}
+        else if(cp<2.8){rAA=PI*.72;rAE=.06;lAA=PI*.9;lAE=.18;} /* hunched */
+        else{rAA=PI*.72;lAA=PI*.9;lLA=PI/2+.58;rLA=PI/2-.44;} /* stumble */
+      }
+    } else if(tp<14){
+      /* HIGH KICK — YOU leaps with spinning back kick */
+      const cp=tp-11.5;
+      if(!isCD){
+        if(cp<1.1){const p=easeOut(cp/1.1);rLA=lerp(PI/2,-PI*.32,p);rLE=p*.92;lLA=PI/2+.35;lAA=PI*.48;lAE=.42;rAA=PI*.3;rAE=.24;}
+        else if(cp<2.0){rLA=-PI*.32;rLE=.92;lLA=PI/2+.38;lAA=PI*.44;rAA=PI*.32;}
+        else{const p=easeOut((cp-2.0)/.7);rLA=lerp(-PI*.32,PI/2,p);rLE=lerp(.92,0,p);lLA=PI/2+.22;}
+      } else {
+        if(cp<1.1){lAA=PI*.34;lAE=.52;rAA=PI*.22;rAE=.18;}
+        else{const p=Math.min(1,(cp-1.1)/1.6);rAA=lerp(PI*.22,PI*.72,p);rAE=.08;lAA=lerp(PI*.34,PI*.85,p);lAE=.12;rLA=PI/2-.42;lLA=PI/2+.52;}
+      }
+    } else if(tp<16.5){
+      /* FOOTWORK / SPINNING — CD recovers, both circle */
+      const cp=tp-14,w=t*2.5;
+      lLA=PI/2+Math.sin(w*PI*2)*.45;rLA=PI/2-Math.sin(w*PI*2)*.45;
+      const feint2=Math.sin(cp*2.8+off)*.45;
+      rAA=PI*.22+feint2*.6;rAE=Math.max(0,feint2)*.42;lAA=PI*.65;lAE=.2;
+    } else if(tp<21){
+      /* CLOSE GRAPPLE BRAWL — short rapid combos */
+      const cp=tp-16.5,p1=Math.sin(cp*4.5+off),p2=Math.sin(cp*3.2+off+Math.PI*.45),k=Math.sin(cp*2.8+koff);
+      rAA=lerp(PI*.24,PI*.02,Math.max(0,p1));rAE=Math.max(0,p1)*.78;
+      lAA=lerp(PI*.64,PI*.12,Math.max(0,p2));lAE=Math.max(0,p2)*.74;
+      if(k>.28){rLA=lerp(PI/2,.08,(k-.28)*1.5);rLE=(k-.28)*1.6;}else{rLA=PI/2;lLA=PI/2;}
+    } else if(tp<25){
+      /* FINISHER — YOU lands decisive combo ending with POWER KICK */
+      const cp=tp-21;
+      if(!isCD){
+        if(cp<.75){const p=Math.sin(cp/.75*PI);rAA=lerp(PI*.22,-.04,p);rAE=p*.95;}
+        else if(cp<1.5){const p=Math.sin((cp-.75)/.75*PI);lAA=lerp(PI*.65,PI*.06,p);lAE=p*.92;}
+        else if(cp<2.25){const p=Math.sin((cp-1.5)/.75*PI);rAA=lerp(PI*.3,-.14,p);rAE=p*1.0;lAA=PI*.32;lAE=.22;}
+        else{const p=Math.sin((cp-2.25)/1.0*PI);rLA=lerp(PI/2,-PI*.38,p);rLE=p*.98;lLA=PI/2+.32;rAA=PI*.44;lAA=PI*.55;}
+      } else {
+        const p=Math.min(1,cp/4.0);
+        lAA=lerp(PI*.34,PI*.68,p);lAE=lerp(.54,.12,p);rAA=lerp(PI*.22,PI*.75,p);rAE=lerp(.15,.04,p);
+      }
+    } else {
+      /* RESET / WALK BACK */
+      const w=t*1.5;
+      lLA=PI/2+Math.sin(w*PI*2)*.38;rLA=PI/2-Math.sin(w*PI*2)*.38;
+      rAA=PI*.28;rAE=0;lAA=PI*.6;lAE=0;
+    }
+    return{lAA,lAE,rAA,rAE,lLA,lLE,rLA,rLE};
+  }
+
+  const VICTORY_YOU={lAA:Math.PI*.5,lAE:.12,rAA:-Math.PI*.6,rAE:.92,lLA:Math.PI/2+.18,lLE:0,rLA:Math.PI/2-.18,rLE:0};
+  const DEFEAT_CD={lAA:Math.PI*.45,lAE:.3,rAA:Math.PI*.35,rAE:.24,lLA:Math.PI/2+.42,lLE:.24,rLA:Math.PI/2-.12,rLE:.35};
+
+  function drawGemCase(gx,gy,t,shatterP){
+    cx.save();cx.translate(gx,gy);
+    const bw=52,bh=72;
+    if(shatterP>0){
+      for(let i=0;i<6;i++){
+        const sx=Math.sin(i*1.2)*30*shatterP,sy=-14-i*11*shatterP,ra=shatterP*(i*.6-.3);
+        cx.save();cx.translate(sx,sy);cx.rotate(ra);
+        cx.strokeStyle=`rgba(180,230,255,${.65*(1-shatterP)})`;cx.lineWidth=.8;
+        cx.beginPath();cx.moveTo(-9,-7);cx.lineTo(7,5);cx.lineTo(-4,11);cx.closePath();cx.stroke();
+        cx.restore();
+      }
+      cx.restore();return;
+    }
+    /* Pedestal */
+    cx.fillStyle='rgba(25,18,12,.88)';cx.fillRect(-bw/2,bh/2-8,bw,14);
+    cx.strokeStyle='rgba(255,107,43,.55)';cx.lineWidth=1;cx.strokeRect(-bw/2,bh/2-8,bw,14);
+    /* Plaque */
+    cx.fillStyle='rgba(255,107,43,.18)';cx.fillRect(-20,bh/2+2,40,11);
+    cx.strokeStyle='rgba(255,107,43,.45)';cx.lineWidth=.5;cx.strokeRect(-20,bh/2+2,40,11);
+    cx.font='6px "Space Mono",monospace';cx.fillStyle='rgba(255,210,100,.95)';cx.textAlign='center';
+    cx.fillText('DECISION',0,bh/2+10.5);
+    /* Glass body */
+    const ga=.09+.04*Math.sin(t*1.4);
+    cx.fillStyle=`rgba(180,230,255,${ga})`;cx.fillRect(-bw/2+4,-bh/2,bw-8,bh/2+2);
+    cx.strokeStyle='rgba(200,240,255,.6)';cx.lineWidth=.9;
+    cx.strokeRect(-bw/2+4,-bh/2,bw-8,bh/2+2);
+    /* Corner brackets */
+    const cs=11;[[-bw/2+4,-bh/2,1,1],[bw/2-4,-bh/2,-1,1]].forEach(([bx2,by2,dx,dy])=>{
+      cx.strokeStyle='rgba(255,107,43,.75)';cx.lineWidth=1.1;
+      cx.beginPath();cx.moveTo(bx2+dx*cs,by2);cx.lineTo(bx2,by2);cx.lineTo(bx2,by2+dy*cs);cx.stroke();
+    });
+    /* Scan line inside glass */
+    const sl=(t*20)%(bh/2+2);
+    if(sl<bh/2){
+      const slg=cx.createLinearGradient(0,-bh/2+sl,0,-bh/2+sl+14);
+      slg.addColorStop(0,'rgba(255,220,100,0)');slg.addColorStop(.5,'rgba(255,220,100,.15)');slg.addColorStop(1,'rgba(255,220,100,0)');
+      cx.fillStyle=slg;cx.fillRect(-bw/2+4,-bh/2+sl,bw-8,14);
+    }
+    /* Inner glow */
+    const ig=cx.createRadialGradient(0,-bh/4,0,0,-bh/4,22);
+    ig.addColorStop(0,'rgba(255,220,80,.22)');ig.addColorStop(1,'rgba(255,220,80,0)');
+    cx.fillStyle=ig;cx.beginPath();cx.arc(0,-bh/4,22,0,Math.PI*2);cx.fill();
+    cx.restore();
+  }
+
+  function nameBanner(x,y,name,isCD){
+    cx.save();cx.font='bold 9px "Space Mono",monospace';cx.textAlign='center';
+    const tw=cx.measureText(name).width,bw=tw+16,bh=18;
+    const col=isCD?'rgba(0,212,170,':'rgba(255,107,43,';
+    cx.fillStyle=`${col}.13)`;cx.fillRect(x-bw/2,y-bh,bw,bh);
+    cx.strokeStyle=`${col}.5)`;cx.lineWidth=.5;cx.strokeRect(x-bw/2,y-bh,bw,bh);
+    cx.fillStyle=`${col}.8)`;cx.fillText(name,x,y-4);cx.restore();
+  }
+
+  function decisionGem(x,y,t,intensity,won){
+    const pulse=1+.18*Math.sin(t*4.5),size=(14+intensity*6)*pulse;
+    cx.save();cx.translate(x,y);
+    const gc=won?[255,107,43]:[255,220,80],gc2=won?[255,150,43]:[255,120,30];
+    [size*5,size*3,size*1.8].forEach((r,i)=>{
+      const a=[.12,.22,.32][i],g=cx.createRadialGradient(0,0,0,0,0,r);
+      g.addColorStop(0,`rgba(${gc.join(',')},${a+intensity*.1+(won?.28:0)})`);g.addColorStop(1,`rgba(${gc2.join(',')},0)`);
+      cx.fillStyle=g;cx.beginPath();cx.arc(0,0,r,0,Math.PI*2);cx.fill();
+    });
+    cx.rotate(t*(won?2.8:.85));
+    cx.beginPath();cx.moveTo(0,-size);cx.lineTo(size*.62,-size*.1);cx.lineTo(size*.48,size*.72);cx.lineTo(0,size*.9);cx.lineTo(-size*.48,size*.72);cx.lineTo(-size*.62,-size*.1);cx.closePath();
+    const grad=cx.createLinearGradient(0,-size,0,size);
+    if(won){grad.addColorStop(0,'rgba(255,230,180,.98)');grad.addColorStop(.35,'rgba(255,107,43,.95)');grad.addColorStop(1,'rgba(255,60,20,.8)');}
+    else{grad.addColorStop(0,'rgba(255,255,230,.95)');grad.addColorStop(.35,'rgba(255,215,100,.88)');grad.addColorStop(1,'rgba(255,140,50,.75)');}
+    cx.fillStyle=grad;cx.fill();cx.strokeStyle=`rgba(255,220,100,${.55+intensity*.3+(won?.3:0)})`;cx.lineWidth=.9;cx.stroke();
+    cx.strokeStyle='rgba(255,255,200,.28)';cx.lineWidth=.5;
+    cx.beginPath();cx.moveTo(0,-size);cx.lineTo(0,size*.9);cx.stroke();
+    cx.beginPath();cx.moveTo(-size*.62,-size*.1);cx.lineTo(size*.62,-size*.1);cx.stroke();
+    cx.restore();
+    cx.save();cx.translate(x,y);
+    cx.font=`${7+intensity*2+(won?3:0)}px "Space Mono",monospace`;cx.textAlign='center';
+    cx.fillStyle=won?`rgba(255,107,43,${.88+intensity*.12})`:`rgba(255,210,100,${.45+intensity*.4})`;
+    cx.fillText(won?'DECIDED!':'DECISION',0,size*6.2);cx.restore();
+  }
+
+  function clash(t,intensity,mx,my){
+    if(intensity<.05)return;
+    const sz=42*(1+.3*Math.sin(t*4)+intensity*.7);
+    const g=cx.createRadialGradient(mx,my,0,mx,my,sz);
+    g.addColorStop(0,'rgba(255,240,180,.22)');g.addColorStop(.4,'rgba(255,107,43,.13)');g.addColorStop(1,'rgba(255,107,43,0)');
+    cx.fillStyle=g;cx.beginPath();cx.arc(mx,my,sz,0,Math.PI*2);cx.fill();
+    for(let i=0;i<8;i++){
+      const a=(i/8)*Math.PI*2+t*1.1,len=(10+intensity*22)*Math.abs(Math.sin(t*3+i));
+      cx.strokeStyle=`rgba(255,${90+Math.floor(90*Math.sin(t+i))},43,${.08+.18*intensity})`;
+      cx.lineWidth=.6+Math.abs(Math.sin(t*4+i))*.4;
+      cx.beginPath();cx.moveTo(mx,my);cx.lineTo(mx+Math.cos(a)*len,my+Math.sin(a)*len);cx.stroke();
+    }
+  }
+
+  window.triggerVerdictVictory=function(){
+    userWon=true;victoryT=Date.now()*.001;
+    const bx=W*.815,by=H*.54;
+    for(let i=0;i<55;i++){const a=Math.random()*Math.PI*2,sp=Math.random()*9+3;impacts.push({x:bx,y:by,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2.5,alpha:1,size:Math.random()*4+1,cy:i%3===0});}
+    for(let i=0;i<12;i++){hitBits.push({x:bx+(Math.random()-.5)*30,y:by,vx:(Math.random()-.5)*5,vy:-(Math.random()*5+2),alpha:1,ch:Math.random()>.5?'1':'0',sz:11});}
+  };
+  window.resetVictory=function(){userWon=false;comboPhaseTrig=0;caseShattering=false;gemX=0;gemY=0;lJump=0;rJump=0;hitBits=[];};
+
+  /* ── FIGHT STATE MACHINE (driven by conversation events) ── */
+  let fightState='IDLE'; // IDLE | WALK_IN | STANDOFF | YOU_ATTACK | CD_ATTACK
+  let fightStateStart=0;
+  let attackTrig=0;
+  window.setFightState=function(s){
+    if(userWon)return; // victory overrides everything
+    fightState=s;fightStateStart=Date.now()*.001;attackTrig=0;
+  };
+
+  const SC=1.35,CYCLE=30,FAR=140,NEAR=72,CLOSE=48,FSPEED=1.7;
+  let hitFlash=0;
+
+  function frame(){
+    const t=Date.now()*.001,ft=t*FSPEED,tp=ft%CYCLE;
+    const fcx=W*.815,fcy=H*.54;
+    const caseX=W*.93,caseY=fcy-75;
+    const floorY=fcy+68;
+    let lx,rx,lRecoil=0,rRecoil=0,inCombat=false,cdFallen=0,lL,rL;
+
+    lJump=0;rJump=0;
+    if(userWon){
+      const vp=t-victoryT;
+      cdFallen=Math.min(1,vp*.55);
+      rRecoil=Math.min(.8,cdFallen*1.1);
+      const PI=Math.PI;
+      /* Phase 1 — Master combo (0–1.8s) */
+      if(vp<1.8){
+        lx=fcx-CLOSE;rx=fcx+CLOSE;inCombat=true;
+        if(vp<.35){const p=Math.sin(vp/.35*PI);lL={lAA:PI*.68,lAE:.18,rAA:lerp(PI*.22,-.04,p),rAE:p*.95,lLA:PI/2+.22,lLE:0,rLA:PI/2-.15,rLE:0};}
+        else if(vp<.65){const p=Math.sin((vp-.35)/.3*PI);lL={lAA:lerp(PI*.65,PI*.06,p),lAE:p*.92,rAA:PI*.28,rAE:.12,lLA:PI/2+.22,lLE:0,rLA:PI/2-.15,rLE:0};}
+        else if(vp<.95){const p=Math.sin((vp-.65)/.3*PI);lL={rAA:lerp(PI*.68,PI*.08,p),rAE:p*.88,lAA:PI*.55,lAE:.22,lLA:PI/2+.22,lLE:0,rLA:PI/2-.15,rLE:0};}
+        else if(vp<1.25){const p=Math.sin((vp-.95)/.3*PI);lL={rAA:lerp(PI*.68,-PI*.3,p),rAE:p*.98,lAA:PI*.52,lAE:.18,lLA:PI/2+.22,lLE:0,rLA:PI/2-.15,rLE:0};}
+        else{const p=easeOut((vp-1.25)/.55);lL={rAA:-PI*.1,rAE:.35,lAA:PI*.5,lAE:.08,lLA:PI/2+.35,lLE:0,rLA:lerp(PI/2,-PI*.38,p),rLE:p*.92};if(p>.1)lJump=-easeIn(p)*28;}
+        rL=DEFEAT_CD;
+        const hits=[[.175,0],[.50,1],[.80,2],[1.10,3],[1.55,4]];
+        hits.forEach(([ht,bit])=>{if(vp>=ht&&!(comboPhaseTrig&(1<<bit))){comboPhaseTrig|=(1<<bit);spawnImpact(rx,fcy-44+bit*7);hitFlash=7;}});
+        gemX=caseX;gemY=caseY;
+      }
+      /* Phase 2 — Walk to case (1.8–3.2s) */
+      else if(vp<3.2){
+        const wp=easeOut((vp-1.8)/1.4);
+        lx=lerp(fcx-CLOSE,caseX-42,wp);rx=fcx+CLOSE;
+        const sp=(vp-1.8)*3.8;
+        lL={lAA:PI*.62,lAE:0,rAA:PI*.28,rAE:0,lLA:PI/2+Math.sin(sp)*.48,lLE:0,rLA:PI/2-Math.sin(sp)*.48,rLE:0};
+        rL=DEFEAT_CD;gemX=caseX;gemY=caseY;
+      }
+      /* Phase 3 — Reach into case and steal gem (3.2s+) */
+      else{
+        lx=caseX-42;rx=fcx+CLOSE;
+        const grabP=Math.min(1,(vp-3.2)/.4);
+        if(vp<3.6){lL={lAA:PI*.62,lAE:0,rAA:lerp(PI*.28,-.06,grabP),rAE:grabP*.9,lLA:PI/2+.22,lLE:0,rLA:PI/2-.15,rLE:0};}
+        else{lL=VICTORY_YOU;}
+        rL=DEFEAT_CD;
+        if(vp>=3.2&&!caseShattering)caseShattering=true;
+        if(vp>=3.6){const fp=Math.min(1,(vp-3.6)*2.2);gemX=lerp(caseX,lx-15,easeOut(fp));gemY=lerp(caseY,fcy-88,easeOut(fp));}
+        else{gemX=caseX;gemY=caseY;}
+      }
+    } else {
+      /* ── FIGHT STATE MACHINE — driven by conversation events ── */
+      const sp=t-fightStateStart;
+
+      if(fightState==='IDLE'){
+        /* Robots at FAR — gentle idle sway before decision is submitted */
+        lx=fcx-FAR+Math.sin(t*.6)*4;rx=fcx+FAR-Math.sin(t*.6)*4;
+        const idtp=3+Math.sin(t*.5)*.4;
+        lL=calcLimbs(ft,idtp,false);rL=calcLimbs(ft,idtp,true);
+
+      } else if(fightState==='WALK_IN'){
+        /* Robots march toward each other over 2.2s → auto-advance to STANDOFF */
+        const p=easeOut(Math.min(1,sp/2.2));
+        lx=lerp(fcx-FAR,fcx-NEAR,p);rx=lerp(fcx+FAR,fcx+NEAR,p);
+        lL=calcLimbs(ft,Math.min(sp*1.1,2.3),false);rL=calcLimbs(ft,Math.min(sp*1.1,2.3),true);
+        if(sp>=2.2){fightState='STANDOFF';fightStateStart=t;attackTrig=0;}
+
+      } else if(fightState==='STANDOFF'){
+        /* Circle/feint at mid-range — waiting for next event */
+        lx=fcx-NEAR+Math.sin(t*1.5)*8;rx=fcx+NEAR-Math.sin(t*1.5)*8;
+        const stp=2.5+(ft*.35)%2;
+        lL=calcLimbs(ft,stp,false);rL=calcLimbs(ft,stp,true);
+
+      } else if(fightState==='YOU_ATTACK'){
+        /* YOU answers → closes to CLOSE and lands 2-hit combo, then returns to STANDOFF */
+        inCombat=true;
+        lx=fcx-CLOSE+Math.sin(sp*.5)*3;rx=fcx+CLOSE;
+        const atp=Math.min(4.5+sp*2.5,8.2);
+        lL=calcLimbs(ft,atp,false);rL=calcLimbs(ft,atp,true);
+        if(sp>.35&&sp<.65){
+          rRecoil=Math.sin((sp-.35)/.3*Math.PI)*.88;rx+=rRecoil*16;
+          if(!(attackTrig&1)){spawnImpact((lx+rx)/2,fcy-22);hitFlash=6;attackTrig|=1;}
+        }
+        if(sp>.9&&sp<1.25){
+          rRecoil=Math.sin((sp-.9)/.35*Math.PI)*.95;rx+=rRecoil*16;
+          if(!(attackTrig&2)){spawnImpact((lx+rx)/2,fcy-28);hitFlash=8;attackTrig|=2;}
+        }
+        if(sp>=1.5){fightState='STANDOFF';fightStateStart=t;attackTrig=0;}
+
+      } else if(fightState==='CD_ATTACK'){
+        /* CipherDusk challenges → closes and lands 2-hit counter on YOU */
+        inCombat=true;
+        lx=fcx-CLOSE;rx=fcx+CLOSE-Math.sin(sp*.5)*3;
+        const atp=Math.min(8.5+sp*2.5,11.2);
+        lL=calcLimbs(ft,atp,false);rL=calcLimbs(ft,atp,true);
+        if(sp>.3&&sp<.6){
+          lRecoil=Math.sin((sp-.3)/.3*Math.PI)*.85;lx-=lRecoil*16;
+          if(!(attackTrig&1)){spawnImpact((lx+rx)/2,fcy-22);hitFlash=6;attackTrig|=1;}
+        }
+        if(sp>.8&&sp<1.15){
+          lRecoil=Math.sin((sp-.8)/.35*Math.PI)*.9;lx-=lRecoil*16;
+          if(!(attackTrig&2)){spawnImpact((lx+rx)/2,fcy-28);hitFlash=7;attackTrig|=2;}
+        }
+        if(sp>=1.5){fightState='STANDOFF';fightStateStart=t;attackTrig=0;}
+
+      } else {
+        lx=fcx-NEAR;rx=fcx+NEAR;
+        lL=calcLimbs(ft,tp,false);rL=calcLimbs(ft,tp,true);
+      }
+      gemX=caseX;gemY=caseY;
+    }
+    if(hitFlash>0)hitFlash--;
+
+    const clashX=(lx+rx)/2,clashY=fcy-30;
+    const intensity=inCombat?Math.max(lL.rAE,rL.rAE)*.9:0;
+    if(inCombat&&intensity>.55&&t-lastImpact>.38){lastImpact=t;spawnImpact(clashX,clashY+18);}
+
+    /* ── DRAW ── */
+    cx.fillStyle='#07070a';cx.fillRect(0,0,W,H);
+
+    /* Hit flash — brief screen brightness on heavy hit */
+    if(hitFlash>0){
+      cx.fillStyle=`rgba(255,200,100,${hitFlash*.012})`;cx.fillRect(0,0,W,H);
+    }
+
+    /* Rain lines — vertical, clearly visible */
+    rainLines.forEach(r=>{
+      r.y+=r.sp;if(r.y>H+150){r.y=-180;r.x=Math.random()*W;}
+      cx.strokeStyle=`rgba(0,212,170,${r.a})`;cx.lineWidth=.7;
+      cx.beginPath();cx.moveTo(r.x,r.y);cx.lineTo(r.x,r.y+r.len);cx.stroke();
+      /* bright head */
+      cx.strokeStyle=`rgba(180,255,240,${r.a*.8})`;cx.lineWidth=1;
+      cx.beginPath();cx.moveTo(r.x,r.y);cx.lineTo(r.x,r.y+8);cx.stroke();
+    });
+
+    /* Binary rain — clearly readable */
+    binaryPts.forEach(b=>{
+      b.y+=b.sp;if(b.y>H+40){b.y=-25;b.x=Math.random()*W;b.ch=Math.random()>.5?'1':'0';}
+      cx.font=`bold ${b.sz}px "Space Mono",monospace`;cx.textAlign='center';
+      /* trail */
+      cx.fillStyle=`rgba(0,170,120,${b.a*.35})`;cx.fillText(b.ch,b.x,b.y+b.sz*1.4);
+      /* main char */
+      cx.fillStyle=`rgba(0,255,180,${b.a})`;cx.fillText(b.ch,b.x,b.y);
+    });
+
+    /* Ambient glows */
+    [{x:fcx/W,y:.45,r:280,c:'255,107,43',ph:0},{x:(fcx+W*.1)/W,y:.5,r:240,c:'0,212,170',ph:1.5},{x:.5,y:.5,r:90,c:'255,107,43',ph:.8}].forEach(o=>{
+      const s=1+.1*Math.sin(t*.45+o.ph);
+      const g=cx.createRadialGradient(o.x*W,o.y*H,0,o.x*W,o.y*H,o.r*s);
+      g.addColorStop(0,`rgba(${o.c},.042)`);g.addColorStop(1,`rgba(${o.c},0)`);
+      cx.fillStyle=g;cx.fillRect(0,0,W,H);
+    });
+
+    /* Grid */
+    cx.lineWidth=.3;
+    for(let gx=0;gx<W;gx+=60){cx.strokeStyle='rgba(255,107,43,.022)';cx.beginPath();cx.moveTo(gx,0);cx.lineTo(gx,H);cx.stroke();}
+    for(let gy=0;gy<H;gy+=60){cx.strokeStyle='rgba(255,107,43,.022)';cx.beginPath();cx.moveTo(0,gy);cx.lineTo(W,gy);cx.stroke();}
+
+    /* ARENA FLOOR */
+    const arenaL=Math.min(lx,rx)-75,arenaR=Math.max(lx,rx)+75;
+    cx.strokeStyle='rgba(255,107,43,.18)';cx.lineWidth=1.5;
+    cx.beginPath();cx.moveTo(arenaL,floorY);cx.lineTo(arenaR,floorY);cx.stroke();
+    /* arena floor glow */
+    const fg=cx.createLinearGradient(arenaL,floorY,arenaR,floorY);
+    fg.addColorStop(0,'rgba(255,107,43,0)');fg.addColorStop(.5,'rgba(255,107,43,.12)');fg.addColorStop(1,'rgba(255,107,43,0)');
+    cx.strokeStyle=fg;cx.lineWidth=6;
+    cx.beginPath();cx.moveTo(arenaL,floorY);cx.lineTo(arenaR,floorY);cx.stroke();
+    /* ground shadows */
+    [{x:lx,c:'255,107,43'},{x:rx,c:'0,212,170'}].forEach(({x,c})=>{
+      const sg=cx.createRadialGradient(x,floorY,0,x,floorY,55);
+      sg.addColorStop(0,`rgba(${c},.22)`);sg.addColorStop(1,`rgba(${c},0)`);
+      cx.fillStyle=sg;cx.beginPath();cx.ellipse(x,floorY,55,10,0,0,Math.PI*2);cx.fill();
+    });
+
+    /* Gem case — far right, always visible */
+    const caseShP=caseShattering?Math.min(1,(t-victoryT-3.2)*1.8):0;
+    drawGemCase(caseX,caseY,t,caseShP);
+    /* Gem — tracks from case to YOU's hand on victory */
+    decisionGem(gemX,gemY,t,inCombat?intensity:.18+.1*Math.sin(t),userWon);
+
+    /* Victory rays — appear when gem is grabbed */
+    if(userWon&&t-victoryT>3.6){
+      const el=Math.min(1,(t-victoryT-3.6)*1.4);
+      for(let i=0;i<14;i++){
+        const a=(i/14)*Math.PI*2+t*.38,len=(70+48*Math.abs(Math.sin(t*1.9+i)))*el;
+        cx.strokeStyle=`rgba(255,107,43,${(.18+.1*Math.abs(Math.sin(t*2+i)))*el})`;cx.lineWidth=1.4+Math.abs(Math.sin(t+i))*.9;
+        cx.beginPath();cx.moveTo(lx,fcy-40);cx.lineTo(lx+Math.cos(a)*len,fcy-40+Math.sin(a)*len);cx.stroke();
+      }
+    }
+
+    /* Banners */
+    nameBanner(lx,fcy+lJump-175,'YOU',false);
+    nameBanner(rx,fcy+rJump-175,'CIPHERDUSK',true);
+
+    /* Robots */
+    robot(lx,fcy+lJump,SC,false,ft,lL,lRecoil,0);
+    robot(rx,fcy+rJump,SC,true,ft,rL,rRecoil,cdFallen);
+
+    /* Impacts */
+    impacts=impacts.filter(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.vy+=.14;p.alpha-=.022;if(p.alpha<=0)return false;
+      cx.fillStyle=p.cy?`rgba(0,212,170,${p.alpha})`:`rgba(255,107,43,${p.alpha})`;
+      cx.beginPath();cx.arc(p.x,p.y,p.size*Math.max(.2,p.alpha),0,Math.PI*2);cx.fill();return true;
+    });
+
+    /* Hit binary digits — fall from impact points */
+    cx.font='bold 10px "Space Mono",monospace';cx.textAlign='center';
+    hitBits=hitBits.filter(b=>{
+      b.x+=b.vx;b.y+=b.vy;b.vy+=.18;b.alpha-=.025;if(b.alpha<=0)return false;
+      cx.font=`bold ${b.sz}px "Space Mono",monospace`;
+      cx.fillStyle=`rgba(0,255,180,${b.alpha*.7})`;cx.fillText(b.ch,b.x,b.y+b.sz*1.4);
+      cx.fillStyle=`rgba(180,255,220,${b.alpha})`;cx.fillText(b.ch,b.x,b.y);
+      return true;
+    });
+
+    /* Ambient particles */
+    pts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.fl+=p.sp;
+      if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+      const a=p.a*(.5+.5*Math.sin(p.fl));
+      cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);cx.fillStyle=`rgba(255,107,43,${a})`;cx.fill();
+    });
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const a=pts[i],b=pts[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d<85){cx.strokeStyle=`rgba(255,107,43,${(1-d/85)*.035})`;cx.lineWidth=.3;cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.stroke();}
+    }
+
+    /* Scan line */
+    const sy=(Date.now()*.0006)%(H+100)-50;
+    const sg=cx.createLinearGradient(0,sy,0,sy+100);
+    sg.addColorStop(0,'rgba(255,107,43,0)');sg.addColorStop(.5,'rgba(255,107,43,.018)');sg.addColorStop(1,'rgba(255,107,43,0)');
+    cx.fillStyle=sg;cx.fillRect(0,sy,W,100);
+
+    /* Vignette */
+    const vg=cx.createRadialGradient(W/2,H/2,H*.02,W/2,H/2,H*.88);
+    vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.7)');
+    cx.fillStyle=vg;cx.fillRect(0,0,W,H);
+
+    /* Corner brackets */
+    const bm=12,bsz=22;cx.strokeStyle='rgba(255,107,43,.2)';cx.lineWidth=.9;
+    [[bm,bm,1,1],[W-bm,bm,-1,1],[bm,H-bm,1,-1],[W-bm,H-bm,-1,-1]].forEach(([bx,by,dx,dy])=>{
+      cx.beginPath();cx.moveTo(bx+dx*bsz,by);cx.lineTo(bx,by);cx.lineTo(bx,by+dy*bsz);cx.stroke();
+    });
+
+    requestAnimationFrame(frame);
+  }
+  window.addEventListener('resize',init);
+  init();frame();
+})();
+
+/* ============================================================
+   APP STATE
+============================================================ */
+let stage=0,decision='',chat=[],fileContext='',selectedOpt='',roundNum=0;
+let prevConf=0,deepChat=[],deepRoundNum=0;
+let history=JSON.parse(localStorage.getItem('cd_history')||'[]');
+const panel=document.getElementById('panel');
+const insightPanel=document.getElementById('insight-panel');
+
+const TIPS=[
+  'The friction is the point. Slow decisions beat fast mistakes.',
+  'What you avoid saying is often the most important thing.',
+  'Every option has a cost. Even inaction.',
+  'What would you regret more — doing it or not doing it?',
+  'CipherDusk sees what you\'re not saying.',
+];
+let tipIdx=0;
+setInterval(()=>{
+  tipIdx=(tipIdx+1)%TIPS.length;
+  const el=document.getElementById('tip-body');
+  if(el){el.style.opacity=0;setTimeout(()=>{el.textContent=TIPS[tipIdx];el.style.opacity=1;},300);}
+},12000);
+
+const BIASES={
+  'sunk cost':       {icon:'💸',desc:'Valuing past investment over future potential. Past effort is gone regardless of your next move.'},
+  'survivorship':    {icon:'🏆',desc:'Only seeing success stories. The failures are invisible — but they\'re the majority.'},
+  'optimism bias':   {icon:'🌅',desc:'Overestimating good outcomes and underestimating how hard this will actually be.'},
+  'fomo':            {icon:'⏳',desc:'Fear of missing out is distorting urgency. Most "now or never" moments aren\'t.'},
+  'confirmation':    {icon:'🔵',desc:'Seeking information that confirms what you already want to do.'},
+  'dunning-kruger':  {icon:'📈',desc:'Early confidence in a new domain peaks before real competence develops.'},
+  'status quo':      {icon:'🔒',desc:'Overvaluing the current situation simply because it\'s familiar.'},
+  'anchoring':       {icon:'⚓',desc:'Too attached to the first number or option encountered.'},
+  'availability':    {icon:'📰',desc:'Recent or vivid events are skewing your sense of probability.'},
+  'planning fallacy':{icon:'📅',desc:'Underestimating time, costs, and risks — almost everyone does this.'},
+};
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+function setMobile(l){const e=document.getElementById('mobile-stage-label');if(e)e.textContent=l;}
+function setSys(mode,round,conf){
+  const m=document.getElementById('sys-mode'),r=document.getElementById('sys-round'),c=document.getElementById('sys-conf');
+  if(m)m.textContent=mode||'STANDBY';if(r)r.textContent=round||'—';if(c)c.textContent=conf?conf+'%':'—';
+}
+
+/* —— HISTORY —— */
+function renderHistory(){
+  const el=document.getElementById('hist-list');
+  if(!history.length){el.innerHTML='<div class="no-hist">⚔️<br>No past decisions yet.</div>';return;}
+  el.innerHTML=history.slice().reverse().map((h,i)=>`
+    <div class="hist-item" onclick="loadHistory(${history.length-1-i})">
+      <div class="hi-date">${h.date}</div>
+      ${h.decision.slice(0,36)}${h.decision.length>36?'...':''}
+    </div>`).join('');
+}
+function loadHistory(i){const h=history[i];stage=99;decision=h.decision;chat=h.chat;renderVerdict(h.verdict||'');}
+function saveHistory(verdict){
+  history.push({decision,chat,verdict,date:new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'})});
+  if(history.length>20)history.shift();
+  localStorage.setItem('cd_history',JSON.stringify(history));
+  renderHistory();
+}
+
+/* —— PROGRESS —— */
+function progressHTML(){
+  if(stage===4){
+    const stages=['Decision','Verdict','Deep Dive','Complete'];
+    return `<div class="prog-wrap"><div class="prog-track">${stages.map((_,i)=>{
+      const dc=i<2?'done':i===2?'deep':'';
+      return `<div class="pd ${dc}"></div>${i<stages.length-1?`<div class="ps ${i<2?'done':i===2?'deep':''}"></div>`:''}`;
+    }).join('')}</div><div class="pl">${stages.map((s,i)=>`<div class="pl-label ${i<2?'done':i===2?'deep':''}">${s}</div>`).join('')}</div></div>`;
+  }
+  const stages=['Decision','Round 1','Round 2','Verdict'];
+  const cur=Math.min(stage,3);
+  return `<div class="prog-wrap"><div class="prog-track">${stages.map((_,i)=>{
+    const dc=i<cur?'done':i===cur?'active':'';
+    return `<div class="pd ${dc}"></div>${i<stages.length-1?`<div class="ps ${i<cur?'done':i===cur?'active':''}"></div>`:''}`;
+  }).join('')}</div><div class="pl">${stages.map((s,i)=>`<div class="pl-label ${i<cur?'done':i===cur?'active':''}">${s}</div>`).join('')}</div></div>`;
+}
+
+/* —— CONFIDENCE —— */
+function confColor(p){return p>=90?'#22c55e':p>=70?'var(--or)':'#ef4444';}
+function confBarHTML(conf){
+  const p=Math.min(100,Math.max(0,parseInt(conf)||0));
+  const col=confColor(p);
+  return `<div class="conf-bar-wrap">
+    <div class="conf-label"><span>AI Confidence</span><span id="conf-pct" style="color:${col}">${p}%</span></div>
+    <div class="conf-track"><div class="conf-fill" id="conf-bar" style="width:0%;background:${col};box-shadow:0 0 8px ${col}"></div></div>
+  </div>`;
+}
+function animateConf(from,to){
+  const fill=document.getElementById('conf-bar'),lbl=document.getElementById('conf-pct');
+  if(!fill||!lbl)return;
+  const col=confColor(to),st=Date.now(),dur=700;
+  function tick(){
+    const p2=Math.min(1,(Date.now()-st)/dur);
+    const cur=Math.round(from+(to-from)*p2);
+    fill.style.width=cur+'%';fill.style.background=col;fill.style.boxShadow=`0 0 8px ${col}`;
+    lbl.textContent=cur+'%';lbl.style.color=col;if(p2<1)requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+/* —— TYPEWRITER (fast) —— */
+function typewrite(el,text){
+  el.innerHTML='';let i=0;
+  function tick(){if(i<text.length){el.textContent+=text[i++];setTimeout(tick,5);}}
+  tick();
+}
+
+/* —— INSIGHT UPDATE —— */
+function updateInsight(insightText,confidence){
+  let biasCard='';
+  const lower=(insightText||'').toLowerCase();
+  for(const[key,val]of Object.entries(BIASES)){
+    if(lower.includes(key)){
+      biasCard=`<div class="insight-card hot">
+        <div class="insight-icon">${val.icon}</div>
+        <div class="insight-title">Bias: ${key}</div>
+        <div class="insight-body">${val.desc}</div>
+      </div>`;break;
+    }
+  }
+  const icons=['💡','⚠️','🎯','⚡','🔍','🧩'];
+  const icon=icons[Math.floor(Math.random()*icons.length)];
+  insightPanel.innerHTML=`
+    <div class="insight-card hot">
+      <div class="insight-icon">${icon}</div>
+      <div class="insight-title">CipherDusk Intel</div>
+      <div class="insight-body">${esc(insightText)}</div>
+    </div>
+    ${biasCard}
+    ${confidence?`<div class="insight-card">
+      <div class="insight-icon">📊</div>
+      <div class="insight-title">Confidence</div>
+      <div class="insight-body"><strong style="color:var(--or)">${confidence}%</strong> — minimum 2 rounds before verdict.</div>
+    </div>`:''}
+    <div class="insight-card">
+      <div class="insight-icon">⚔️</div>
+      <div class="insight-title">Stay Honest</div>
+      <div class="insight-body">CipherDusk needs context to give a verdict worth following.</div>
+    </div>`;
+}
+
+/* —— PARSE AI RESPONSE —— */
+function parseResponse(text){
+  if(!text||!text.trim()){const fb=["A) Yes, I've considered this carefully","B) I'm acting on instinct more than logic","C) I feel pressured or rushed into this","D) Other — I'll explain myself"];return{confidence:'',insight:'',question:'What is really driving this decision?',options:fb,verdict:'',why:'',risks:'',timeline:'',pattern:'',deepInsight:'',finalInsight:''};}
+  const get=(key)=>{
+    const m=text.match(new RegExp(`${key}:\\s*([\\s\\S]*?)(?=\\n[A-Z][A-Z ]+:|\\n---|$)`,'i'));
+    return m?m[1].trim():'';
+  };
+  const confidence=get('CONFIDENCE');
+  const insight=get('INSIGHT');
+  const rawQ=get('QUESTION');
+  const verdict=get('DEEP VERDICT')||get('VERDICT');
+  const why=get('WHY');
+  const risks=get('HIDDEN RISKS')||get('RISKS');
+  const timeline=get('TIMELINE');
+  const pattern=get('PSYCHOLOGICAL PATTERN');
+  const deepInsight=get('DEEP INSIGHT SUMMARY');
+  const finalInsight=get('INSIGHT');
+
+  /* Options — robust multi-format parser */
+  const om=text.match(/OPTIONS[\s:]*/i);
+  const start=om?om.index+om[0].length:0;
+  const searchIn=text.slice(start);
+  const rawLines=searchIn.split('\n').map(l=>l.replace(/^\*+\s*/,'').replace(/\*+\s*$/,'').replace(/^[-•·]\s*/,'').trim()).filter(l=>l.length>0);
+  const opts=[];
+  for(const l of rawLines){
+    if(/^[A-D][\s]*[).:\-]/i.test(l))opts.push(l);
+    else if(opts.length>=2&&l.length>3&&/^[A-Z]{2}/.test(l)&&l.includes(':'))break;
+    if(opts.length>=4)break;
+  }
+  let options=opts.length>=2?opts.map(l=>{const m2=l.match(/^([A-D])[\s]*[).:\-]\s*(.*)/i);return m2?`${m2[1].toUpperCase()}) ${m2[2].replace(/\*+/g,'').trim()}`:l;}):[];
+
+  /* FALLBACK — always guarantee options so UI is never stuck */
+  if(options.length<2){options=["A) Yes, I've considered this carefully","B) I'm acting on instinct more than logic","C) I feel pressured or rushed into this","D) Other — I'll explain myself"];}
+
+  /* FALLBACK — always guarantee a question */
+  let question=rawQ;
+  if(!question){
+    const cands=text.split('\n').map(l=>l.trim()).filter(l=>l.length>20&&!/^[A-Z][A-Z ]+:/.test(l)&&!/^[A-D][).:]/.test(l)&&!l.startsWith('-'));
+    question=cands[cands.length-1]||'What is really driving this decision?';
+  }
+
+  return{confidence,insight,question,options,verdict,why,risks,timeline,pattern,deepInsight,finalInsight};
+}
+
+/* —— RENDER —— */
+function render(){
+  if(stage===0){renderInput();return;}
+  if(stage===99){renderVerdict('');return;}
+  if(stage===4){runDeepRound();return;}
+}
+
+function renderInput(){
+  setMobile('Ready');setSys('STANDBY','—','—');
+  panel.innerHTML=`
+    <div class="q-card">
+      <div class="rnd-hdr"><div class="rnd-dot"></div>// What decision are you facing?</div>
+      <div class="onboarding">
+        <div class="ob-step"><span class="ob-num">01</span><span class="ob-text">State your decision — job change, startup, relationship, anything.</span></div>
+        <div class="ob-step"><span class="ob-num">02</span><span class="ob-text">CipherDusk challenges your assumptions. Answer honestly.</span></div>
+        <div class="ob-step"><span class="ob-num">03</span><span class="ob-text">Earn your verdict — only when the AI has enough context to decide.</span></div>
+      </div>
+      <span class="lbl">Your decision or plan</span>
+      <textarea id="inp" placeholder='e.g. "I want to quit my job and start a startup"' style="min-height:100px"></textarea>
+      <div class="upload-zone" onclick="document.getElementById('fi').click()">
+        <span style="font-size:15px">📎</span>
+        <div><div class="upload-text">Attach PDF or TXT for extra context (optional)</div>
+        <div class="upload-name" id="fname">No file attached</div></div>
+      </div>
+      <input type="file" id="fi" accept=".txt,.pdf" onchange="handleFile(this)"/>
+      <button class="btn primary" id="go-btn">ANALYZE MY DECISION →</button>
+    </div>`;
+  document.getElementById('go-btn').addEventListener('click',submitDecision);
+}
+
+/* —— QUESTION CARD —— */
+function renderQuestion(parsed){
+  const rn=Math.min(roundNum,3);
+  setMobile(`Round ${rn}/3`);setSys('ANALYZING',`${rn}/3`,parsed.confidence||'—');
+  const oldCard=panel.querySelector('.q-card');
+  if(oldCard){oldCard.classList.add('exiting');setTimeout(()=>_buildQuestion(parsed),180);}
+  else _buildQuestion(parsed);
+}
+
+function _buildQuestion(parsed){
+  const conf=parseInt(parsed.confidence)||0;
+  const rn=Math.min(roundNum,3);
+  panel.innerHTML=`
+    ${progressHTML()}
+    ${conf?confBarHTML(conf):''}
+    <div class="q-card">
+      <div class="rnd-hdr">
+        <div class="rnd-dot"></div>// CipherDusk challenges you
+        <span class="round-badge">Round ${rn}/3</span>
+      </div>
+      ${decision?`<div class="decision-echo">Re: "${decision.slice(0,55)}${decision.length>55?'...':''}"</div>`:''}
+      <div class="q-text" id="q-text"><div class="thinking"><span></span><span></span><span></span></div></div>
+      <div class="options-grid" id="opts"></div>
+      <div class="manual-wrap" id="manual-wrap">
+        <span class="lbl">Or explain in your own words</span>
+        <textarea id="manual-inp" placeholder="Be specific. Vague answers get vague results." style="min-height:65px"></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn primary" style="flex:1" id="go-btn">SUBMIT ANSWER →</button>
+        <button class="btn sm" onclick="reset()">↺ Reset</button>
+      </div>
+    </div>`;
+  if(conf){requestAnimationFrame(()=>animateConf(prevConf,conf));prevConf=conf;}
+  const qEl=document.getElementById('q-text');
+  const qText=parsed.question||'What is really driving this decision?';
+  setTimeout(()=>typewrite(qEl,qText),80);
+  const optsEl=document.getElementById('opts');
+  const optDelay=Math.min(qText.length*5+80,350);
+  if(parsed.options.length){
+    setTimeout(()=>{
+      optsEl.innerHTML=parsed.options.map(l=>{
+        const key=l.trim()[0],txt=l.trim().replace(/^[A-D][).]\s*/i,'').trim();
+        return `<button class="opt-card" data-key="${key}" onclick="selectOpt(this,'${key}')">
+          <span class="opt-key">${key}</span><span class="opt-text">${esc(txt)}</span>
+        </button>`;
+      }).join('');
+    },optDelay);
+  } else {
+    setTimeout(()=>{const mw=document.getElementById('manual-wrap');if(mw)mw.classList.add('open');},optDelay);
+  }
+  document.getElementById('go-btn').addEventListener('click',submitAnswer);
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+  if(window.setFightState)window.setFightState('CD_ATTACK');
+}
+
+/* —— VERDICT —— */
+function renderVerdict(fullText){
+  const parsed=fullText?parseResponse(fullText):{};
+  const conf=parseInt(parsed.confidence)||0;
+  const verdictText=parsed.verdict||(fullText?'':'Analysis complete. Trust the process.');
+  setMobile('Verdict');setSys('VERDICT','✓',conf||'—');
+  panel.innerHTML=`
+    ${progressHTML()}
+    <div class="verdict-card">
+      <div class="verdict-title">VERDICT</div>
+      ${conf?confBarHTML(conf):''}
+      ${verdictText?`<div class="verdict-section"><div class="verdict-label">Recommendation</div><div class="verdict-text">${esc(verdictText)}</div></div>`:''}
+      ${parsed.why?`<div class="verdict-section"><div class="verdict-label">Why</div><div class="verdict-text">${esc(parsed.why)}</div></div>`:''}
+      ${parsed.risks?`<div class="verdict-section"><div class="verdict-label">Hidden Risks</div><div class="verdict-text">${esc(parsed.risks)}</div></div>`:''}
+      ${parsed.timeline?`<div class="verdict-section"><div class="verdict-label">Timeline</div><div class="verdict-text">${esc(parsed.timeline)}</div></div>`:''}
+      ${parsed.pattern?`<div class="verdict-section"><div class="verdict-label">Psychological Pattern</div><div class="verdict-text">${esc(parsed.pattern)}</div></div>`:''}
+      ${!parsed.verdict&&fullText?`<pre style="white-space:pre-wrap;font-size:12px;line-height:1.8;color:#9a9890;padding:.4rem 0">${esc(fullText.slice(0,1400))}</pre>`:''}
+    </div>
+    <div class="earned"><div class="earned-word">DECIDED.</div><div class="earned-sub">You earned that analysis. Now act on it.</div></div>
+    <button class="btn green" onclick="enterDeepDive()" style="margin-bottom:.5rem">GO DEEPER →</button>
+    <button class="btn primary" onclick="reset()">↺ Analyze Another Decision</button>`;
+  if(conf)requestAnimationFrame(()=>animateConf(0,conf));
+  if(window.triggerVerdictVictory)window.triggerVerdictVictory();
+  insightPanel.innerHTML=`<div class="insight-card hot">
+    <div class="insight-icon">🎯</div><div class="insight-title">Analysis Complete</div>
+    <div class="insight-body">Verdict delivered. Go deeper to uncover what the first pass missed.</div>
+  </div>`;
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ============================================================
+   DEEP DIVE
+============================================================ */
+function enterDeepDive(){stage=4;deepChat=[...chat];deepRoundNum=0;runDeepRound();}
+
+async function runDeepRound(){
+  deepRoundNum++;
+  const mode=`deep${Math.min(deepRoundNum,3)}`;
+  const histStr=[...chat,...deepChat].map(m=>`${m.role.toUpperCase()}: ${m.content}`).join('\n');
+  setMobile(`Deep ${deepRoundNum}/3`);setSys('DEEP DIVE',`${deepRoundNum}/3`,'—');
+  panel.innerHTML=`${progressHTML()}<div class="q-card">
+    <div class="rnd-hdr"><div class="rnd-dot" style="background:var(--gr);box-shadow:0 0 8px var(--gr)"></div>// Deep Dive — Extended Reflection<span class="round-badge">Deep ${deepRoundNum}/3</span></div>
+    <div class="q-text" id="stream-prev"><div class="thinking"><span></span><span></span><span></span></div></div>
+  </div>`;
+  await streamTo(
+    {mode,decision,history:histStr,context:fileContext},
+    (full)=>{const el=document.getElementById('stream-prev');if(el)el.textContent=full;},
+    (full)=>{
+      deepChat.push({role:'ai',content:full});
+      const parsed=parseResponse(full);
+      const conf=parseInt(parsed.confidence)||0;
+      if((parsed.verdict&&conf>=80)||deepRoundNum>=3)runDeepSummary();
+      else{if(parsed.insight)updateInsight(parsed.insight,parsed.confidence);renderDeepQuestion(parsed);}
+    }
+  );
+}
+
+function renderDeepQuestion(parsed){
+  const oldCard=panel.querySelector('.q-card');
+  if(oldCard){oldCard.classList.add('exiting');setTimeout(()=>_buildDeepQ(parsed),180);}
+  else _buildDeepQ(parsed);
+}
+
+function _buildDeepQ(parsed){
+  const conf=parseInt(parsed.confidence)||0;
+  panel.innerHTML=`
+    ${progressHTML()}
+    ${conf?confBarHTML(conf):''}
+    <div class="q-card">
+      <div class="rnd-hdr"><div class="rnd-dot" style="background:var(--gr);box-shadow:0 0 8px var(--gr)"></div>// Deep Dive<span class="round-badge">Deep ${deepRoundNum}/3</span></div>
+      ${decision?`<div class="decision-echo">Re: "${decision.slice(0,55)}${decision.length>55?'...':''}"</div>`:''}
+      <div class="q-text" id="q-text"><div class="thinking"><span></span><span></span><span></span></div></div>
+      <div class="options-grid" id="opts"></div>
+      <div class="manual-wrap" id="manual-wrap">
+        <span class="lbl">Or explain in your own words</span>
+        <textarea id="manual-inp" placeholder="Be specific." style="min-height:65px"></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn green" style="flex:1" id="go-btn">SUBMIT ANSWER →</button>
+        <button class="btn sm" onclick="reset()">↺ Reset</button>
+      </div>
+    </div>`;
+  if(conf){requestAnimationFrame(()=>animateConf(prevConf,conf));prevConf=conf;}
+  const qEl=document.getElementById('q-text');
+  const qText=parsed.question||'What remains unresolved?';
+  setTimeout(()=>typewrite(qEl,qText),80);
+  const optsEl=document.getElementById('opts');
+  const optDelay=Math.min(qText.length*5+80,350);
+  if(parsed.options.length){
+    setTimeout(()=>{
+      optsEl.innerHTML=parsed.options.map(l=>{
+        const key=l.trim()[0],txt=l.trim().replace(/^[A-D][).]\s*/i,'').trim();
+        return `<button class="opt-card" data-key="${key}" onclick="selectOpt(this,'${key}')">
+          <span class="opt-key">${key}</span><span class="opt-text">${esc(txt)}</span>
+        </button>`;
+      }).join('');
+    },optDelay);
+  } else {
+    setTimeout(()=>{const mw=document.getElementById('manual-wrap');if(mw)mw.classList.add('open');},optDelay);
+  }
+  document.getElementById('go-btn').addEventListener('click',submitDeepAnswer);
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+  if(window.setFightState)window.setFightState('CD_ATTACK');
+}
+
+async function submitDeepAnswer(){
+  const txt=collectAnswer();if(!txt)return;
+  if(window.setFightState)window.setFightState('YOU_ATTACK');
+  deepChat.push({role:'user',content:txt});selectedOpt='';
+  const btn=document.getElementById('go-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>&nbsp;Analyzing...';
+  if(deepRoundNum>=3)runDeepSummary();else runDeepRound();
+}
+
+async function runDeepSummary(){
+  const histStr=[...chat,...deepChat].map(m=>`${m.role.toUpperCase()}: ${m.content}`).join('\n');
+  setMobile('Synthesizing');
+  panel.innerHTML=`${progressHTML()}<div class="q-card">
+    <div class="rnd-hdr"><div class="rnd-dot" style="background:var(--gr);box-shadow:0 0 8px var(--gr)"></div>// CipherDusk synthesizing...</div>
+    <div class="q-text" id="stream-prev"><div class="thinking"><span></span><span></span><span></span></div></div>
+  </div>`;
+  await streamTo(
+    {mode:'deep_summary',decision,history:histStr,context:fileContext},
+    (full)=>{const el=document.getElementById('stream-prev');if(el)el.textContent=full;},
+    (full)=>{deepChat.push({role:'ai',content:full});renderDeepVerdict(full);}
+  );
+}
+
+function renderDeepVerdict(fullText){
+  const parsed=parseResponse(fullText);
+  const conf=parseInt(parsed.confidence)||0;
+  setMobile('Deep Verdict');setSys('DEEP VERDICT','✓✓',conf||'—');
+  panel.innerHTML=`
+    ${progressHTML()}
+    <div class="deep-verdict-card">
+      <div class="deep-verdict-title">DEEP VERDICT</div>
+      ${conf?confBarHTML(conf):''}
+      ${parsed.verdict?`<div class="verdict-section"><div class="verdict-label green">Refined Recommendation</div><div class="verdict-text">${esc(parsed.verdict)}</div></div>`:''}
+      ${parsed.why?`<div class="verdict-section"><div class="verdict-label green">Why</div><div class="verdict-text">${esc(parsed.why)}</div></div>`:''}
+      ${parsed.deepInsight?`<div class="verdict-section"><div class="verdict-label green">Deep Insight Summary</div><div class="verdict-text">${esc(parsed.deepInsight)}</div></div>`:''}
+      ${parsed.risks?`<div class="verdict-section"><div class="verdict-label green">Hidden Risks</div><div class="verdict-text">${esc(parsed.risks)}</div></div>`:''}
+      ${parsed.timeline?`<div class="verdict-section"><div class="verdict-label green">Timeline</div><div class="verdict-text">${esc(parsed.timeline)}</div></div>`:''}
+      ${parsed.pattern?`<div class="verdict-section"><div class="verdict-label green">Psychological Pattern</div><div class="verdict-text">${esc(parsed.pattern)}</div></div>`:''}
+    </div>
+    <div class="earned" style="border-color:var(--gr)">
+      <div class="earned-word" style="color:var(--gr)">DEEPER.</div>
+      <div class="earned-sub">Extended reflection complete. You went further than most.</div>
+    </div>
+    <button class="btn primary" onclick="reset()">↺ Analyze Another Decision</button>`;
+  if(conf)requestAnimationFrame(()=>animateConf(0,conf));
+  insightPanel.innerHTML=`<div class="insight-card" style="border-color:var(--gr)">
+    <div class="insight-icon">🌊</div><div class="insight-title" style="color:var(--gr)">Deep Dive Complete</div>
+    <div class="insight-body">Three levels deeper. The reflection surfaced what the surface missed.</div>
+  </div>`;
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* —— COLLECT ANSWER —— */
+function collectAnswer(){
+  const mi=document.getElementById('manual-inp');
+  if(selectedOpt==='D'||!selectedOpt){
+    const txt=(mi?.value||'').trim();
+    if(!txt){shake(mi||document.querySelector('.opt-card'));return null;}
+    return txt;
+  }
+  const sb=document.querySelector(`.opt-card[data-key="${selectedOpt}"]`);
+  let txt=sb?sb.querySelector('.opt-text').textContent.trim():'';
+  const extra=(mi?.value||'').trim();
+  if(extra)txt+=' — '+extra;
+  if(!txt){shake(document.querySelector('.opt-card'));return null;}
+  return txt;
+}
+
+/* —— OPTION SELECT —— */
+function selectOpt(btn,key){
+  document.querySelectorAll('.opt-card').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');selectedOpt=key;
+  const mw=document.getElementById('manual-wrap');
+  if(mw)key==='D'?mw.classList.add('open'):mw.classList.remove('open');
+}
+
+/* —— FILE —— */
+async function handleFile(input){
+  const file=input.files[0];if(!file)return;
+  const fnEl=document.getElementById('fname');
+  fnEl.textContent=`Loading ${file.name}...`;fnEl.style.color='var(--mu)';
+  const fd=new FormData();fd.append('file',file);
+  try{
+    const r=await fetch('/upload',{method:'POST',body:fd});
+    if(!r.ok)throw new Error(`Server error ${r.status}`);
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    fileContext=d.text||'';
+    fnEl.textContent=`✓ ${file.name} (${Math.round(fileContext.length/100)/10}k chars)`;fnEl.style.color='var(--or)';
+  }catch(e){
+    fileContext='';
+    fnEl.textContent=`✗ Failed — continuing without context`;fnEl.style.color='#ef4444';
+  }
+}
+
+/* —— STREAM —— */
+async function streamTo(body,onToken,onDone){
+  let full='',first=true;
+  try{
+    const res=await fetch('/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const reader=res.body.getReader();const dec=new TextDecoder();
+    while(true){
+      const{done,value}=await reader.read();if(done)break;
+      for(const line of dec.decode(value).split('\n')){
+        if(!line.startsWith('data:'))continue;
+        try{
+          const d=JSON.parse(line.slice(5));full+=d.token;
+          if(first){const el=document.getElementById('stream-prev');if(el)el.innerHTML='';first=false;}
+          onToken(full);
+        }catch(e){}
+      }
+    }
+  }catch(e){full='Connection error. Make sure the server is running.';}
+  onDone(full);
+}
+
+/* —— SUBMIT DECISION —— */
+async function submitDecision(){
+  const txt=(document.getElementById('inp')?.value||'').trim();
+  if(!txt){shake(document.getElementById('inp'));return;}
+  decision=txt;
+  if(window.setFightState)window.setFightState('WALK_IN');
+  const btn=document.getElementById('go-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>&nbsp;Analyzing...';
+  chat=[];roundNum=1;prevConf=0;
+  setMobile('Round 1/3');setSys('ANALYZING','1/3','—');
+  panel.innerHTML=`${progressHTML()}<div class="q-card">
+    <div class="rnd-hdr"><div class="rnd-dot"></div>// Reading your decision...</div>
+    <div class="q-text" id="stream-prev"><div class="thinking"><span></span><span></span><span></span></div></div>
+  </div>`;
+  await streamTo(
+    {mode:'cd1',decision,context:fileContext},
+    (full)=>{const el=document.getElementById('stream-prev');if(el)el.textContent=full;},
+    (full)=>{
+      chat.push({role:'ai',content:full});
+      const parsed=parseResponse(full);
+      const conf=parseInt(parsed.confidence)||0;
+      /* ROUND 1: NEVER go to verdict — always ask the question, even if AI is confident */
+      stage=1;
+      if(parsed.insight)updateInsight(parsed.insight,parsed.confidence);
+      /* If model still output a verdict instead of a question, fall back to a generic question */
+      if(!parsed.question&&parsed.verdict){
+        parsed.question='What specific context led you to this decision that I should know about?';
+        parsed.options=['A) Practical need or external pressure','B) Long-held desire finally acting on it','C) Escaping a current situation','D) Other — I\'ll explain myself'].map(o=>o);
+      }
+      renderQuestion(parsed);
+    }
+  );
+}
+
+/* —— SUBMIT ANSWER —— */
+async function submitAnswer(){
+  const txt=collectAnswer();if(!txt)return;
+  if(window.setFightState)window.setFightState('YOU_ATTACK');
+  chat.push({role:'user',content:txt});selectedOpt='';roundNum++;
+  stage=Math.min(roundNum,2); // advance progress bar (capped at Round 2 until verdict)
+  setMobile(`Round ${Math.min(roundNum,3)}/3`);
+  const btn=document.getElementById('go-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>&nbsp;Analyzing...';
+  const histStr=chat.map(m=>`${m.role.toUpperCase()}: ${m.content}`).join('\n');
+  let mode='cd2';
+  if(roundNum>=4)mode='cd_final';
+  setSys('ANALYZING',`${Math.min(roundNum,3)}/3`,'—');
+  panel.innerHTML=`${progressHTML()}<div class="q-card">
+    <div class="rnd-hdr"><div class="rnd-dot"></div>// CipherDusk is thinking...</div>
+    <div class="q-text" id="stream-prev"><div class="thinking"><span></span><span></span><span></span></div></div>
+  </div>`;
+  await streamTo(
+    {mode,decision,history:histStr,answer:txt,context:fileContext},
+    (full)=>{const el=document.getElementById('stream-prev');if(el)el.textContent=full;},
+    (full)=>{
+      chat.push({role:'ai',content:full});
+      const parsed=parseResponse(full);
+      const conf=parseInt(parsed.confidence)||0;
+      /* From round 2+: go to verdict if conf>=80 OR forced final */
+      if(conf>=80||mode==='cd_final'){
+        if(parsed.verdict||mode==='cd_final'){stage=99;saveHistory(full);renderVerdict(full);}
+        else forceFinalVerdict(histStr);
+      } else {
+        if(parsed.insight)updateInsight(parsed.insight,parsed.confidence);
+        renderQuestion(parsed);
+      }
+    }
+  );
+}
+
+/* —— FORCE FINAL when model had high conf but skipped VERDICT format —— */
+async function forceFinalVerdict(histStr){
+  panel.innerHTML=`${progressHTML()}<div class="q-card">
+    <div class="rnd-hdr"><div class="rnd-dot"></div>// Confidence threshold reached — generating verdict...</div>
+    <div class="q-text" id="stream-prev"><div class="thinking"><span></span><span></span><span></span></div></div>
+  </div>`;
+  await streamTo(
+    {mode:'cd_final',decision,history:histStr,context:fileContext},
+    (full)=>{const el=document.getElementById('stream-prev');if(el)el.textContent=full;},
+    (full)=>{chat.push({role:'ai',content:full});stage=99;saveHistory(full);renderVerdict(full);}
+  );
+}
+
+/* —— UTILS —— */
+function reset(){
+  stage=0;decision='';chat=[];fileContext='';selectedOpt='';roundNum=0;prevConf=0;deepChat=[];deepRoundNum=0;
+  if(window.resetVictory)window.resetVictory();
+  if(window.setFightState)window.setFightState('IDLE');
+  insightPanel.innerHTML=`
+    <div class="insight-card"><div class="insight-icon">🧠</div><div class="insight-title">Insight Panel</div><div class="insight-body">CipherDusk will surface cognitive biases and psychological patterns here as you answer.</div></div>
+    <div class="insight-card"><div class="insight-icon">⚔️</div><div class="insight-title">How It Works</div><div class="insight-body">Answer honestly. Minimum 2 rounds before verdict. The friction is the point.</div></div>`;
+  render();
+}
+function shake(el){if(!el)return;el.style.borderColor='#ff4444';el.focus?.();setTimeout(()=>{if(el.style)el.style.borderColor='';},700);}
+
+render();
+renderHistory();
+</script>
+</body>
+</html>
