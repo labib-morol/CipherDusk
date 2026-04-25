@@ -1,119 +1,117 @@
 # CipherDusk — Decision Intelligence System
 
-> *Stop deciding fast. Start deciding right.*
-
-CipherDusk is an adversarial AI that challenges your decisions instead of validating them. Most tools tell you what you want to hear. CipherDusk tells you what you need to hear.
+> *Every AI tool tries to make decisions easier. CipherDusk makes them harder — on purpose. Because the best decisions come from pressure, not reassurance.*
 
 ---
 
-## What It Does
+## The Position
 
-You bring a decision. CipherDusk interrogates it.
+Most AI tools validate you. They summarize, suggest, and smooth things over.
 
-Through 2–3 rounds of escalating questions, it surfaces the real motivation behind your choice — the one you haven't admitted to yourself yet. It detects cognitive biases, calls out contradictions, and delivers a verdict based on your actual reasoning, not your stated reasoning.
+CipherDusk does the opposite.
 
-**It is not a chatbot. It is an opponent.**
+It interrogates your decision. It names your cognitive biases. It calls out contradictions between what you said in round one and what you're saying now. It refuses to give a verdict until it has enough to work with.
+
+**Friction is not a bug. Friction is the product.**
 
 ---
 
-## How It Works
+## What Happens When You Use It
+
+You bring a decision. CipherDusk treats it as a suspect.
 
 ```
 You enter a decision
         ↓
-Round 1 — Surface Analysis
-CipherDusk identifies your likely hidden motivation
-and asks the question you'd rather not answer.
+Round 1 — Surface Interrogation
+The AI identifies your likely hidden motivation.
+Asks the question you'd rather not answer.
         ↓
-Round 2 — Bias Detection
+Round 2 — Contradiction Detection
 Your answer is audited against Round 1.
-Contradictions are called out. Biases are named.
+Contradictions are named. Biases are called out directly.
         ↓
-Round 3 — Pre-Verdict Pressure
-The hardest question. If clarity exists, verdict fires early.
-        ↓
-Final Verdict
-Clear. Decisive. Worth following.
+Verdict — when confidence is earned, not before
+A DIRECTIVE: one short command specific to your decision.
+"Quit the job. Build it." or "Don't do this yet."
         ↓
 Deep Mode (optional)
-3 more rounds of extended interrogation
-+ a full psychological synthesis at the end.
+3 more rounds of extended interrogation.
+Full psychological synthesis at the end.
 ```
+
+It does not ask generic questions.
+It does not say "you may want to consider."
+It does not tell you what you want to hear.
 
 ---
 
-## Who It's For
+## Why This Interprets Friction Correctly
 
-- Anyone making a decision they keep second-guessing
-- People who want honest analysis, not reassurance
-- Anyone who suspects they already know the answer but won't admit it
+Friction in decision-making is not a UX problem to solve — it is a thinking tool being discarded.
+
+The best decisions in your life probably came after resistance, doubt, or a conversation that made you uncomfortable. CipherDusk is that conversation, automated.
+
+We did not build friction *around* the product. We built friction *as* the product.
 
 ---
 
 ## Features
 
-- **Adversarial AI** — challenges weak reasoning directly
-- **Cognitive bias detection** — names the bias, doesn't hint at it
-- **Contradiction memory** — tracks what you said across rounds
-- **Early verdict** — fires when confidence is high, no unnecessary questions
-- **Decision Type classifier** — labels your decision (e.g. "Escape Decision", "Fear-Based Hold")
-- **Deep Mode** — extended 3-round interrogation with full psychological summary
-- **File upload** — attach a PDF or TXT for extra context
-- **Streaming responses** — real-time AI output
+- **Adversarial AI** — challenges weak reasoning, does not validate it
+- **Contradiction memory** — tracks what you said across rounds and calls out inconsistencies
+- **Cognitive bias detection** — names the bias specifically, does not hint at it
+- **DIRECTIVE** — one-line command verdict specific to your decision
+- **Decision Type classifier** — labels your decision (Escape Decision, Fear-Based Hold, etc.)
+- **Early verdict** — fires when confidence is high, skips unnecessary rounds
+- **Deep Mode** — 3-round extended interrogation with full psychological synthesis
+- **Confidence scoring** — AI confidence synced to UI, increases with each round
+- **File upload** — attach PDF or TXT for extra context
+- **Voice input + TTS** — speak your answer, hear the verdict
+- **Streaming responses** — real-time AI output, no waiting for full response
 - **Decision history** — past decisions saved locally
 
 ---
 
 ## Built With
 
-- **Frontend** — Vanilla HTML/CSS/JS
+- **Frontend** — Vanilla HTML / CSS / JS
 - **Backend** — FastAPI (Python)
-- **AI** — Llama 3.3 70B via Groq API
+- **AI Model** — Llama 3.3 70B via Groq API
 - **Streaming** — Server-Sent Events (SSE)
+- **Animation** — Canvas API (robot fight)
 
 ---
 
-## Setup (Local)
+## Run Locally
 
-1. Clone the repo
-   ```bash
-   git clone https://github.com/labib-morol/CipherDusk.git
-   cd CipherDusk
-   ```
+```bash
+git clone https://github.com/labib-morol/CipherDusk.git
+cd CipherDusk
 
-2. Create and activate a virtual environment
-   ```bash
-   python -m venv venv
-   # Windows:
-   venv\Scripts\activate
-   # Mac/Linux:
-   source venv/bin/activate
-   ```
+python -m venv venv
+# Windows:
+venv\Scripts\activate
+# Mac/Linux:
+source venv/bin/activate
 
-3. Install dependencies
-   ```bash
-   pip install -r requirements.txt
-   ```
+pip install -r requirements.txt
 
-4. Add your Groq API key — get one free at [console.groq.com](https://console.groq.com)
-   ```bash
-   cp .env.example .env
-   # then open .env and paste your key
-   ```
+cp .env.example .env
+# Open .env and add your Groq API key (free at console.groq.com)
 
-5. Run
-   ```bash
-   uvicorn server:app --reload
-   ```
+uvicorn server:app --reload
+```
 
-6. Open `http://localhost:8000`
+Open `http://localhost:8000`
 
 ---
 
 ## Live Demo
 
-[cipherdusk.up.railway.app](https://web-production-1c39e.up.railway.app/)
+[web-production-1c39e.up.railway.app](https://web-production-1c39e.up.railway.app/)
 
 ---
 
-*Built for Noverse Friction Hackathon 2026 — Cognitive friction by design.*
+*Built for Noverse Friction Hackathon 2026.*
+*The theme asked us to take a stance. This is ours: friction is not the enemy of good decisions. It is the mechanism.*
