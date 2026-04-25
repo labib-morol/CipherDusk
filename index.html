@@ -181,6 +181,7 @@ input[type=file]{display:none;}
 .footer{text-align:center;padding-top:1.75rem;margin-top:1.75rem;border-top:.5px solid var(--bd);font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.14em;color:var(--mu);}
 .footer span{color:var(--or);}
 .streaming-cursor::after{content:'▊';color:var(--or);animation:blink .6s step-end infinite;}
+.stream-fade-out{transition:opacity .2s ease;opacity:0!important;}
 
 @media(max-width:1100px){#right-col{display:none;}}
 @media(max-width:750px){#left-col{width:200px;}}
@@ -216,9 +217,16 @@ input[type=file]{display:none;}
 /* —— VERDICT LAYOUT —— */
 .verdict-hdr-row{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:.9rem;}
 .verdict-hdr-row .verdict-title,.verdict-hdr-row .deep-verdict-title{margin-bottom:0;}
-.verdict-decision-box{background:var(--s2);border:.5px solid var(--bd2);padding:1rem;margin-bottom:.6rem;}
+.verdict-decision-box{background:var(--s2);border:.5px solid var(--bd2);padding:1.1rem 1.1rem 1rem;margin-bottom:.6rem;position:relative;overflow:hidden;}
+.verdict-decision-box::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--or);box-shadow:0 0 12px var(--or);animation:heroBarGrow .55s cubic-bezier(.2,1.4,.4,1) both .05s;transform-origin:top;}
 .verdict-stamp{font-size:52px;text-align:center;animation:stampIn .7s cubic-bezier(.2,2.3,.4,1) both;margin-bottom:.4rem;line-height:1;}
-.verdict-mainline{font-family:'Bebas Neue',sans-serif;font-size:21px;color:var(--or);line-height:1.25;animation:decodeFade .9s ease both .15s;letter-spacing:.03em;}
+.verdict-mainline{font-family:'Bebas Neue',sans-serif;font-size:clamp(26px,4.2vw,36px);font-weight:700;color:var(--or);line-height:1.12;letter-spacing:.02em;margin:.15rem 0 .15rem;text-shadow:0 0 22px rgba(255,107,43,.35);animation:heroLineIn .7s cubic-bezier(.2,1.4,.4,1) both .15s;position:relative;}
+.verdict-decision-box .verdict-text{font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.65;color:#a8a59c;margin-top:.6rem!important;padding-top:.6rem;border-top:.5px solid var(--bd2);animation:fadeUp .45s ease both .55s;}
+.decision-type-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--or);border:.5px solid var(--or);padding:2px 7px;margin:0 0 .55rem;animation:fadeUp .35s ease both .1s;}
+@keyframes heroLineIn{0%{opacity:0;transform:translateY(14px) scale(.94);filter:blur(6px) brightness(1.6);letter-spacing:.18em}55%{opacity:1;filter:blur(0) brightness(1.15);letter-spacing:.04em}100%{opacity:1;transform:none;filter:none;letter-spacing:.02em}}
+@keyframes heroBarGrow{0%{transform:scaleY(0)}100%{transform:scaleY(1)}}
+.verdict-decision-box.deep::before{background:var(--gr);box-shadow:0 0 12px var(--gr);}
+.verdict-decision-box.deep .verdict-mainline{text-shadow:0 0 22px rgba(34,197,94,.35);}
 
 /* —— TTS / AUDIO BUTTONS —— */
 .tts-btn{background:none;border:none;cursor:pointer;color:var(--mu);padding:.25rem .4rem;font-size:13px;line-height:1;transition:color .2s,transform .15s;flex-shrink:0;}
@@ -262,11 +270,15 @@ input[type=file]{display:none;}
 #stop-audio-btn{position:fixed;bottom:3.5rem;right:1.2rem;z-index:20;background:rgba(7,7,10,.92);border:.5px solid var(--bd2);color:var(--mu);width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .2s;line-height:1;}
 #stop-audio-btn:hover{border-color:var(--or);color:var(--or);}
 /* —— TRANSITION OVERLAY —— */
-#transition-overlay{position:fixed;inset:0;z-index:50;pointer-events:none;opacity:0;transition:opacity .18s ease;}
+#transition-overlay{position:fixed;inset:0;z-index:50;pointer-events:none;opacity:0;transition:opacity .12s ease;}
 #transition-overlay.active{opacity:1;pointer-events:all;}
-.transition-bg{position:absolute;inset:0;background:#07070a;}
-.transition-scan{position:absolute;inset:0;background:repeating-linear-gradient(transparent 0 3px,rgba(0,255,200,.04) 3px 4px);animation:scanSweep .35s linear infinite;}
-.transition-glitch-line{position:absolute;width:100%;height:3px;background:var(--cy);top:40%;animation:scanSweep .2s linear infinite;}
+.transition-bg{position:absolute;inset:0;background:rgba(7,7,10,.96);}
+.transition-scan{position:absolute;inset:0;background:repeating-linear-gradient(transparent 0 3px,rgba(255,107,43,.025) 3px 4px);opacity:.5;}
+.transition-status{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:.6rem;}
+.transition-dot{width:7px;height:7px;border-radius:50%;background:var(--or);box-shadow:0 0 10px var(--or);animation:transitionPulse .9s ease-in-out infinite;flex-shrink:0;}
+.transition-text{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--or);min-width:1ch;}
+.transition-text::after{content:'_';color:var(--or);opacity:.7;animation:blink .6s step-end infinite;margin-left:2px;}
+@keyframes transitionPulse{0%,100%{transform:scale(1);opacity:.55;box-shadow:0 0 6px var(--or)}50%{transform:scale(1.45);opacity:1;box-shadow:0 0 16px var(--or)}}
 /* —— VERDICT ENHANCED ANIMATIONS —— */
 @keyframes slideOutDown{0%{transform:none;opacity:1}40%{transform:translateY(20px) scale(1.05);opacity:1}100%{transform:translateY(140%) scale(.6);opacity:0}}
 @keyframes verdictDecode{0%,100%{transform:none;color:var(--or)}15%{transform:skewX(8deg) translateX(-4px);color:#0ff;filter:blur(1px)}30%{transform:skewX(-5deg);color:var(--or);filter:none}45%{transform:translateX(6px);color:#0ff;filter:blur(.5px)}60%{transform:none;color:var(--or)}75%{transform:skewX(3deg);color:#0ff}90%{transform:none}}
@@ -282,7 +294,10 @@ input[type=file]{display:none;}
 <div id="transition-overlay">
   <div class="transition-bg"></div>
   <div class="transition-scan"></div>
-  <div class="transition-glitch-line"></div>
+  <div class="transition-status">
+    <div class="transition-dot"></div>
+    <div class="transition-text" id="transition-text"></div>
+  </div>
 </div>
 
 <div id="shell">
@@ -714,11 +729,17 @@ input[type=file]{display:none;}
   window.setWaitingForAI=function(v){waitingForAI=v;};
   window.setUserHP=function(hp){youHPTarget=Math.max(0,Math.min(100,hp));};
 
-  /* ── FIGHT STATE MACHINE (driven by conversation events) ── */
-  let fightState='IDLE'; // IDLE | WALK_IN | STANDOFF | YOU_ATTACK | CD_ATTACK
+  /* ── FIGHT STATE MACHINE (driven by conversation events) ──
+     Public states: IDLE, USER_STRIKE, WRESTLING, CD_STRIKE, KNOCKOUT
+     Internal:      WALK_IN, STANDOFF, YOU_ATTACK, CD_ATTACK, CHASE, REACH, REVIVAL, DEEP_ALLIED */
+  let fightState='IDLE';
   let fightStateStart=0;
   let attackTrig=0;
   window.setFightState=function(s){
+    if(s==='KNOCKOUT'){
+      if(window.triggerVerdictVictory)window.triggerVerdictVictory();
+      return;
+    }
     if(userWon)return;
     if(fightState==='REVIVAL')return; // don't interrupt revival animation
     fightState=s;fightStateStart=Date.now()*.001;attackTrig=0;
@@ -955,11 +976,49 @@ input[type=file]{display:none;}
       } else if(fightState==='WRESTLING'){
         const PI=Math.PI;
         inCombat=false;
-        const sway=Math.sin(sp*PI/1.5)*12;
-        lx=fcx-CLOSE+sway;rx=fcx+CLOSE+sway;
-        const wrestleLean=Math.sin(sp*PI/1.5)*.12;
+        /* alternating sinusoidal push-pull, 1.8s period, 15px each */
+        const sway=Math.sin(sp*PI*2/1.8)*15;
+        lx=fcx-CLOSE+sway;rx=fcx+CLOSE-sway;
+        const wrestleLean=Math.sin(sp*PI*2/1.8)*.12;
         lL={lAA:PI*.22-wrestleLean,lAE:.88,rAA:PI*.18-wrestleLean,rAE:.85,lLA:PI/2+.25,lLE:0,rLA:PI/2-.22,rLE:0};
         rL={lAA:PI*.82+wrestleLean,lAE:.85,rAA:PI*.78+wrestleLean,rAE:.88,lLA:PI/2+.22,lLE:0,rLA:PI/2-.25,rLE:0};
+
+      } else if(fightState==='USER_STRIKE'){
+        /* User robot lunges forward (60px in 80ms), CD staggers back 30px over 200ms.
+           Total 600ms then return to WRESTLING/IDLE. */
+        const PI=Math.PI;
+        inCombat=true;
+        let userExt=0,cdRecoil=0;
+        if(sp<.08)userExt=easeOut(sp/.08);
+        else if(sp<.6)userExt=Math.max(0,1-(sp-.08)/.52);
+        if(sp>=.04&&sp<.2)cdRecoil=Math.sin((sp-.04)/.16*PI);
+        else if(sp<.6)cdRecoil=Math.max(0,1-(sp-.2)/.4)*.4;
+        lx=fcx-CLOSE+userExt*60;
+        rx=fcx+CLOSE+cdRecoil*30;
+        rRecoil=cdRecoil*.7;
+        const punchA=lerp(PI*.22,-.08,userExt);
+        lL={lAA:PI*.66,lAE:.18,rAA:punchA,rAE:userExt*.95,lLA:PI/2+.22,lLE:0,rLA:PI/2-.18,rLE:0};
+        rL=calcLimbs(ft,8.5+sp*.8,true);
+        if(sp>.06&&!(attackTrig&1)){spawnImpact((lx+rx)/2-8,fcy-26,true);hitFlash=6;attackTrig|=1;cdHP=Math.max(5,cdHP-12);}
+        if(sp>=.6){fightState=waitingForAI?'WRESTLING':'IDLE';fightStateStart=t;attackTrig=0;}
+
+      } else if(fightState==='CD_STRIKE'){
+        /* CipherDusk lunges forward, user staggers back 25px. 500ms then return. */
+        const PI=Math.PI;
+        inCombat=true;
+        let cdExt=0,userRecoil=0;
+        if(sp<.08)cdExt=easeOut(sp/.08);
+        else if(sp<.5)cdExt=Math.max(0,1-(sp-.08)/.42);
+        if(sp>=.04&&sp<.2)userRecoil=Math.sin((sp-.04)/.16*PI);
+        else if(sp<.5)userRecoil=Math.max(0,1-(sp-.2)/.3)*.4;
+        lx=fcx-CLOSE-userRecoil*25;
+        rx=fcx+CLOSE-cdExt*60;
+        lRecoil=userRecoil*.7;
+        const punchA=lerp(PI*.22,-.08,cdExt);
+        rL={lAA:PI*.66,lAE:.18,rAA:punchA,rAE:cdExt*.95,lLA:PI/2+.22,lLE:0,rLA:PI/2-.18,rLE:0};
+        lL=calcLimbs(ft,4.5+sp*.8,false);
+        if(sp>.06&&!(attackTrig&1)){spawnImpact((lx+rx)/2+8,fcy-26,true);hitFlash=6;attackTrig|=1;youHP=Math.max(5,youHP-9);}
+        if(sp>=.5){fightState='IDLE';fightStateStart=t;attackTrig=0;}
 
       } else {
         lx=fcx-NEAR;rx=fcx+NEAR;

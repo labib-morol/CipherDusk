@@ -184,11 +184,31 @@ function typewrite(el,text){
 
 /* —— TRANSITION OVERLAY —— */
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
+const TRANSITION_PHRASES=[
+  'PROCESSING RESPONSE...',
+  'DETECTING PATTERNS...',
+  'CROSS-REFERENCING ANSWERS...',
+  'PREPARING NEXT CHALLENGE...',
+];
+function _transitionPhrase(){
+  const r=stage===4?deepRoundNum:roundNum;
+  const idx=Math.max(0,Math.min(TRANSITION_PHRASES.length-1,r-1));
+  return TRANSITION_PHRASES[idx];
+}
+function _typewriteOverlay(el,text){
+  el.textContent='';let i=0;
+  const step=Math.max(8,Math.floor(160/text.length));
+  function tick(){if(i<text.length){el.textContent+=text[i++];setTimeout(tick,step);}}
+  tick();
+}
 function transitionOut(cb){
   const ov=document.getElementById('transition-overlay');
+  const txt=document.getElementById('transition-text');
   if(!ov){cb();return;}
+  if(txt)_typewriteOverlay(txt,_transitionPhrase());
   ov.classList.add('active');
-  setTimeout(()=>{cb();setTimeout(()=>ov.classList.remove('active'),220);},180);
+  /* fade IN 120ms → hold ~300ms → cb fires → fade OUT 120ms */
+  setTimeout(()=>{cb();setTimeout(()=>ov.classList.remove('active'),120);},420);
 }
 
 /* —— INSIGHT UPDATE —— */
@@ -239,13 +259,14 @@ function parseResponse(text){
     return{confidence:'',insight:'',question:'What is really driving this decision?',options:fb,verdict:'',why:'',risks:'',timeline:'',pattern:'',deepInsight:'',finalInsight:'',bestCase:'',worstCase:''};
   }
   const get=(key)=>{
-    const m=text.match(new RegExp(`${key}:\\s*([\\s\\S]*?)(?=\\n[A-Z][A-Z ]+:|\\n---|$)`,'i'));
+    const m=text.match(new RegExp(`${key}:\\s*([\\s\\S]*?)(?=\\n[A-Z][A-Z_ ]+:|\\n---|$)`,'i'));
     return m?m[1].trim():'';
   };
   const confidence=get('CONFIDENCE');
   const insight=get('INSIGHT');
   const rawQ=get('QUESTION');
-  const verdict=get('DEEP VERDICT')||get('VERDICT');
+  const verdict=get('FINAL_VERDICT')||get('DEEP VERDICT')||get('VERDICT');
+  const decisionType=get('DECISION TYPE');
   const why=get('WHY');
   const risks=get('HIDDEN RISKS')||get('RISKS');
   const timeline=get('TIMELINE');
@@ -271,11 +292,11 @@ function parseResponse(text){
 
   let question=rawQ;
   if(!question){
-    const cands=text.split('\n').map(l=>l.trim()).filter(l=>l.length>20&&!/^[A-Z][A-Z ]+:/.test(l)&&!/^[A-D][).:]/.test(l)&&!l.startsWith('-'));
+    const cands=text.split('\n').map(l=>l.trim()).filter(l=>l.length>20&&!/^[A-Z][A-Z_ ]+:/.test(l)&&!/^[A-D][).:]/.test(l)&&!l.startsWith('-'));
     question=cands[cands.length-1]||'What is really driving this decision?';
   }
 
-  return{confidence,insight,question,options,verdict,why,risks,timeline,pattern,deepInsight,finalInsight,bestCase,worstCase};
+  return{confidence,insight,question,options,verdict,decisionType,why,risks,timeline,pattern,deepInsight,finalInsight,bestCase,worstCase};
 }
 
 /* —— VERDICT HELPERS —— */
@@ -389,7 +410,6 @@ function _buildQuestion(parsed){
   }
   document.getElementById('go-btn').addEventListener('click',submitAnswer);
   panel.scrollIntoView({behavior:'smooth',block:'start'});
-  if(window.setFightState)window.setFightState('CD_ATTACK');
 }
 
 /* —— VERDICT —— */
@@ -415,7 +435,7 @@ async function renderVerdict(fullText){
       <div class="verdict-slam-text" id="decided-word">DECIDED</div>
       <div class="verdict-sub-label">// ANALYSIS COMPLETE</div>
     </div>`;
-  if(window.triggerVerdictVictory)window.triggerVerdictVictory();
+  if(window.setFightState)window.setFightState('KNOCKOUT');
   setTimeout(()=>{document.getElementById('decided-word')?.classList.add('verdict-decode');},400);
   setTimeout(()=>{document.getElementById('decided-word')?.classList.add('verdict-slide-out');},1800);
   setTimeout(()=>{
@@ -449,8 +469,9 @@ function _appendVerdictResults(stage,parsed,fullText,conf){
   const decisionHtml=verdictText?`<div class="v-result-item slide-r" style="animation-delay:.1s">
     <div class="verdict-decision-box" style="margin:0 0 .5rem">
       <div class="verdict-label">Decision</div>
+      ${parsed.decisionType?`<div class="decision-type-badge">[${esc(parsed.decisionType.toUpperCase())}]</div>`:''}
       ${mainLine?`<div class="verdict-mainline">${esc(mainLine)}</div>`:''}
-      ${mainRest?`<div class="verdict-text" style="margin-top:.45rem;opacity:.82">${esc(mainRest)}</div>`:''}
+      ${mainRest?`<div class="verdict-text">${esc(mainRest)}</div>`:''}
     </div>
   </div>`:'';
   /* Accordion sections slide in alternating left/right */
@@ -512,7 +533,13 @@ async function runDeepRound(){
       const parsed=parseResponse(full);
       const conf=parseInt(parsed.confidence)||0;
       if((parsed.verdict&&conf>=80)||deepRoundNum>=3)runDeepSummary();
-      else{if(parsed.insight)updateInsight(parsed.insight,parsed.confidence);transitionOut(()=>renderDeepQuestion(parsed));}
+      else{
+        if(parsed.insight)updateInsight(parsed.insight,parsed.confidence);
+        transitionOut(()=>{
+          if(window.setFightState)window.setFightState('CD_STRIKE');
+          renderDeepQuestion(parsed);
+        });
+      }
     }
   );
 }
@@ -570,13 +597,12 @@ function _buildDeepQ(parsed){
   }
   document.getElementById('go-btn').addEventListener('click',submitDeepAnswer);
   panel.scrollIntoView({behavior:'smooth',block:'start'});
-  if(window.setFightState)window.setFightState('CD_ATTACK');
 }
 
 async function submitDeepAnswer(){
   speakStop();
   const txt=collectAnswer();if(!txt)return;
-  if(window.setFightState)window.setFightState('YOU_ATTACK');
+  if(window.setFightState)window.setFightState('USER_STRIKE');
   deepChat.push({role:'user',content:txt});selectedOpt='';
   const btn=document.getElementById('go-btn');
   btn.disabled=true;btn.innerHTML='<span class="spin"></span>&nbsp;Analyzing...';
@@ -600,7 +626,7 @@ async function runDeepSummary(){
 
 function renderDeepVerdict(fullText){
   speakStop();
-  if(window.triggerVerdictVictory)window.triggerVerdictVictory();
+  if(window.setFightState)window.setFightState('KNOCKOUT');
   const parsed=parseResponse(fullText);
   const conf=parseInt(parsed.confidence)||0;
   setMobile('Deep Verdict');setSys('DEEP VERDICT','✓✓',conf||'—');
@@ -616,10 +642,11 @@ function renderDeepVerdict(fullText){
         ${parsed.verdict?`<button class="tts-btn tts-lg" title="Hear verdict" data-tts="${attr(ttsFull)}" onclick="speakText(this.dataset.tts)">🔊</button>`:''}
       </div>
       ${conf?confBarHTML(conf):''}
-      ${parsed.verdict?`<div class="verdict-decision-box" style="border-color:rgba(34,197,94,.35)">
+      ${parsed.verdict?`<div class="verdict-decision-box deep" style="border-color:rgba(34,197,94,.35)">
         <div class="verdict-label green">Refined Decision</div>
+        ${parsed.decisionType?`<div class="decision-type-badge" style="color:var(--gr);border-color:var(--gr)">[${esc(parsed.decisionType.toUpperCase())}]</div>`:''}
         ${mainLine?`<div class="verdict-mainline" style="color:var(--gr)">${esc(mainLine)}</div>`:''}
-        ${mainRest?`<div class="verdict-text" style="margin-top:.45rem;opacity:.82">${esc(mainRest)}</div>`:''}
+        ${mainRest?`<div class="verdict-text">${esc(mainRest)}</div>`:''}
       </div>`:''}
       <div class="v-acc-grid" id="dvc-grid"></div>
     </div>`;
@@ -701,10 +728,13 @@ async function handleFile(input){
   }
 }
 
-/* —— STREAM —— */
+/* —— STREAM ——
+   Tokens are accumulated silently — we never display raw AI text (CONFIDENCE: 45,
+   INSIGHT: ...) on screen. The thinking dots remain visible until streaming
+   completes, then fade out before the transition begins. */
 async function streamTo(body,onToken,onDone){
   if(window.setWaitingForAI)window.setWaitingForAI(true);
-  let full='',first=true;
+  let full='';
   try{
     const res=await fetch('/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const reader=res.body.getReader();const dec=new TextDecoder();
@@ -714,21 +744,19 @@ async function streamTo(body,onToken,onDone){
         if(!line.startsWith('data:'))continue;
         try{
           const d=JSON.parse(line.slice(5));full+=d.token;
-          if(first){
-            const el=document.getElementById('stream-prev');
-            if(el){el.innerHTML='';el.classList.add('streaming-cursor');}
-            first=false;
-          }
-          const el=document.getElementById('stream-prev');
-          if(el)el.textContent=full;
           onToken(full);
         }catch(e){}
       }
     }
   }catch(e){full='Connection error. Make sure the server is running.';}
   const el=document.getElementById('stream-prev');
-  if(el)el.classList.remove('streaming-cursor');
+  if(el){
+    el.classList.remove('streaming-cursor');
+    el.classList.add('stream-fade-out');
+  }
   if(window.setWaitingForAI)window.setWaitingForAI(false);
+  await delay(200);
+  if(el){el.innerHTML='';el.style.opacity='0';}
   onDone(full);
 }
 
@@ -737,7 +765,7 @@ async function submitDecision(){
   const txt=(document.getElementById('inp')?.value||'').trim();
   if(!txt){shake(document.getElementById('inp'));return;}
   decision=txt;
-  if(window.setFightState)window.setFightState('WALK_IN');
+  if(window.setFightState)window.setFightState('USER_STRIKE');
   const btn=document.getElementById('go-btn');
   btn.disabled=true;btn.innerHTML='<span class="spin"></span>&nbsp;Analyzing...';
   chat=[];roundNum=1;prevConf=0;
@@ -758,7 +786,10 @@ async function submitDecision(){
         parsed.question='What specific context led you to this decision that I should know about?';
         parsed.options=['A) Practical need or external pressure','B) Long-held desire finally acting on it','C) Escaping a current situation','D) Other — I\'ll explain myself'];
       }
-      transitionOut(()=>renderQuestion(parsed));
+      transitionOut(()=>{
+        if(window.setFightState)window.setFightState('CD_STRIKE');
+        renderQuestion(parsed);
+      });
     }
   );
 }
@@ -767,7 +798,7 @@ async function submitDecision(){
 async function submitAnswer(){
   speakStop();
   const txt=collectAnswer();if(!txt)return;
-  if(window.setFightState)window.setFightState('YOU_ATTACK');
+  if(window.setFightState)window.setFightState('USER_STRIKE');
   chat.push({role:'user',content:txt});selectedOpt='';roundNum++;
   stage=Math.min(roundNum,2);
   setMobile(`Round ${Math.min(roundNum,3)}/3`);
@@ -794,7 +825,10 @@ async function submitAnswer(){
         else forceFinalVerdict(histStr);
       } else {
         if(parsed.insight)updateInsight(parsed.insight,parsed.confidence);
-        transitionOut(()=>renderQuestion(parsed));
+        transitionOut(()=>{
+          if(window.setFightState)window.setFightState('CD_STRIKE');
+          renderQuestion(parsed);
+        });
       }
     }
   );
