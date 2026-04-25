@@ -183,6 +183,7 @@ function typewrite(el,text){
 }
 
 /* —— TRANSITION OVERLAY —— */
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
 function transitionOut(cb){
   const ov=document.getElementById('transition-overlay');
   if(!ov){cb();return;}
@@ -392,11 +393,22 @@ function _buildQuestion(parsed){
 }
 
 /* —— VERDICT —— */
-function renderVerdict(fullText){
+async function renderVerdict(fullText){
   speakStop();
   const parsed=fullText?parseResponse(fullText):{};
   const conf=parseInt(parsed.confidence)||0;
   setMobile('Verdict');setSys('VERDICT','✓',conf||'—');
+  panel.innerHTML=`
+    <div class="q-card" style="text-align:center;padding:2.2rem 1.4rem">
+      <div class="rnd-hdr" style="justify-content:center">
+        <div class="rnd-dot"></div>// CipherDusk is finalizing judgment...
+      </div>
+      <div class="thinking" style="justify-content:center;padding:1.1rem 0">
+        <span></span><span></span><span></span>
+      </div>
+    </div>`;
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+  await delay(1200);
   panel.innerHTML=`
     <div class="verdict-stage" id="verdict-stage">
       <div class="verdict-scan-line"></div>
@@ -404,11 +416,8 @@ function renderVerdict(fullText){
       <div class="verdict-sub-label">// ANALYSIS COMPLETE</div>
     </div>`;
   if(window.triggerVerdictVictory)window.triggerVerdictVictory();
-  /* Phase 2: glitch/decode at 400ms */
   setTimeout(()=>{document.getElementById('decided-word')?.classList.add('verdict-decode');},400);
-  /* Phase 3: slide out at 1800ms */
   setTimeout(()=>{document.getElementById('decided-word')?.classList.add('verdict-slide-out');},1800);
-  /* Phase 4: verdict results box slides in at 1950ms */
   setTimeout(()=>{
     const stg=document.getElementById('verdict-stage');
     if(!stg)return;
