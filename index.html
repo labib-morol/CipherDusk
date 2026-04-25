@@ -222,7 +222,10 @@ input[type=file]{display:none;}
 .verdict-stamp{font-size:52px;text-align:center;animation:stampIn .7s cubic-bezier(.2,2.3,.4,1) both;margin-bottom:.4rem;line-height:1;}
 .verdict-mainline{font-family:'Bebas Neue',sans-serif;font-size:clamp(26px,4.2vw,36px);font-weight:700;color:var(--or);line-height:1.12;letter-spacing:.02em;margin:.15rem 0 .15rem;text-shadow:0 0 22px rgba(255,107,43,.35);animation:heroLineIn .7s cubic-bezier(.2,1.4,.4,1) both .15s;position:relative;}
 .verdict-decision-box .verdict-text{font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.65;color:#a8a59c;margin-top:.6rem!important;padding-top:.6rem;border-top:.5px solid var(--bd2);animation:fadeUp .45s ease both .55s;}
-.decision-type-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--or);border:.5px solid var(--or);padding:2px 7px;margin:0 0 .55rem;animation:fadeUp .35s ease both .1s;}
+.decision-type-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--or);border:.5px solid var(--or);padding:2px 8px;margin:0 0 .55rem;animation:fadeUp .35s ease both .05s;}
+.verdict-directive{font-family:'Bebas Neue',sans-serif;font-size:44px;color:var(--or);line-height:1.02;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:.35rem 0 0;animation:fadeUp .35s ease both;}
+@media(max-width:600px){.verdict-directive{font-size:30px;}}
+.verdict-directive-sep{height:2px;background:linear-gradient(90deg,var(--or),transparent);margin:.55rem 0 .75rem;animation:fadeUp .35s ease both .1s;}
 @keyframes heroLineIn{0%{opacity:0;transform:translateY(14px) scale(.94);filter:blur(6px) brightness(1.6);letter-spacing:.18em}55%{opacity:1;filter:blur(0) brightness(1.15);letter-spacing:.04em}100%{opacity:1;transform:none;filter:none;letter-spacing:.02em}}
 @keyframes heroBarGrow{0%{transform:scaleY(0)}100%{transform:scaleY(1)}}
 .verdict-decision-box.deep::before{background:var(--gr);box-shadow:0 0 12px var(--gr);}

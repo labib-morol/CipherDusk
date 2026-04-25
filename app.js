@@ -449,13 +449,10 @@ async function renderVerdict(fullText){
 
 function _appendVerdictResults(stage,parsed,fullText,conf){
   const verdictText=parsed.verdict||(fullText?'':'Analysis complete.');
-  /* If we have a DIRECTIVE, it IS the hero line — the full verdict text becomes
-     supporting context. Otherwise fall back to splitting the first sentence. */
+  /* mainLine/mainRest always come from the FINAL_VERDICT body (existing behavior).
+     If a DIRECTIVE is present, render it as a separate hero block ABOVE them. */
   let mainLine='',mainRest='';
-  if(parsed.directive){
-    mainLine=parsed.directive;
-    mainRest=verdictText;
-  } else if(verdictText){
+  if(verdictText){
     const split=parseVerdictMainLine(verdictText);
     mainLine=split.main;mainRest=split.rest;
   }
@@ -479,7 +476,8 @@ function _appendVerdictResults(stage,parsed,fullText,conf){
   const decisionHtml=verdictText?`<div class="v-result-item slide-r" style="animation-delay:.1s">
     <div class="verdict-decision-box" style="margin:0 0 .5rem">
       <div class="verdict-label">Decision</div>
-      ${parsed.decisionType?`<div class="decision-type-badge">[${esc(parsed.decisionType.toUpperCase())}]</div>`:''}
+      ${parsed.decisionType?`<div class="decision-type-badge">[ ${esc(parsed.decisionType.toUpperCase())} ]</div>`:''}
+      ${parsed.directive?`<div class="verdict-directive">${esc(parsed.directive.toUpperCase())}</div><div class="verdict-directive-sep"></div>`:''}
       ${mainLine?`<div class="verdict-mainline">${esc(mainLine)}</div>`:''}
       ${mainRest?`<div class="verdict-text">${esc(mainRest)}</div>`:''}
     </div>

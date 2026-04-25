@@ -22,6 +22,7 @@ Target the weakest assumption, not the stated reason.
  
 RULES:
 - NEVER output FINAL_VERDICT in Round 1 — you need their answers first
+- Do not fully resolve the decision in Round 1 even if a pattern seems clear — leave room for deeper challenge
 - Output EXACTLY in the format below — no preamble, no closing remarks
 - CONFIDENCE starts low (20–45) — you're just getting started
 - If a clear pattern already emerges, jump CONFIDENCE directly above 80 — do not increase gradually just to continue the conversation
@@ -324,7 +325,7 @@ TIMELINE:
 5 years: <realistic outcome>
  
 INSIGHT:
-⚠️ <One final truth. Not advice — a mirror. Must feel like behavioral analysis, not a suggestion. Something slightly uncomfortable that they will think about after closing this tab. Specific to them, not generic wisdom. Use fewer words, not more.>"""
+⚠️ <One final truth. Not advice — a mirror. Must feel like behavioral analysis, not a suggestion. Something slightly uncomfortable that they will think about after closing this tab. Specific to them, not generic wisdom. Use fewer words, not more. It should feel like something they will remember after closing the app. Avoid generic truth — make it personal.>"""
  
  
 def cd_final_prompt(decision: str, history: str, context: str = "") -> str:
@@ -395,5 +396,5 @@ TIMELINE:
 5 years: <realistic outcome>
  
 INSIGHT:
-⚠️ <One final truth. Not advice — a mirror. Must feel like behavioral analysis, not a suggestion. Something slightly uncomfortable that they will think about after closing this tab. Specific to them. Use fewer words, not more.>"""
+⚠️ <One final truth. Not advice — a mirror. Must feel like behavioral analysis, not a suggestion. Something slightly uncomfortable that they will think about after closing this tab. Specific to them. Use fewer words, not more. It should feel like something they will remember after closing the app. Avoid generic truth — make it personal.>"""
  
