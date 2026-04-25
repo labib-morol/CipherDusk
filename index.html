@@ -391,20 +391,26 @@ input[type=file]{display:none;}
   let cdLastX=0,cdLastY=0;
   let waitingForAI=false,youHPTarget=100;
   function spawnImpact(x,y,big){
-    const cnt=big?38:18,spd=big?9:6,sz=big?5:3.5;
+    /* sparks — more, brighter, bigger */
+    const cnt=big?52:24,spd=big?11:7,sz=big?6:4;
     for(let i=0;i<cnt;i++){
-      const a=Math.random()*Math.PI*2,sp=Math.random()*spd+2;
-      impacts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,alpha:1,size:Math.random()*sz+.8,cy:Math.random()>.45});
+      const a=Math.random()*Math.PI*2,sp=Math.random()*spd+2.5;
+      impacts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,alpha:1,size:Math.random()*sz+1,cy:Math.random()>.55});
     }
-    const bc=big?9:5;
+    /* binary digits — kept for cool effect but minimal so the hit reads clean */
+    const bc=big?3:1;
     for(let i=0;i<bc;i++){
-      const vx=(Math.random()-.5)*(big?7:4),vy=-(Math.random()*(big?7:4)+2);
-      hitBits.push({x:x+(Math.random()-.5)*15,y,vx,vy,alpha:1,ch:Math.random()>.5?'1':'0',sz:Math.floor(Math.random()*5)+(big?12:9)});
+      const vx=(Math.random()-.5)*(big?6:3.5),vy=-(Math.random()*(big?6:3.5)+2);
+      hitBits.push({x:x+(Math.random()-.5)*15,y,vx,vy,alpha:1,ch:Math.random()>.5?'1':'0',sz:Math.floor(Math.random()*4)+(big?13:10)});
     }
     if(big){
-      /* shockwave ring */
-      impacts.push({x,y,vx:0,vy:0,alpha:.9,size:0,ring:true,ringR:0,cy:Math.random()>.5});
-      shakeDecay=.82;comboCount++;comboAlpha=1;
+      /* dual shockwave rings — orange + cyan, layered for visibility */
+      impacts.push({x,y,vx:0,vy:0,alpha:1,size:0,ring:true,ringR:0,cy:false});
+      impacts.push({x,y,vx:0,vy:0,alpha:.7,size:0,ring:true,ringR:0,cy:true});
+      shakeDecay=1.0;comboCount++;comboAlpha=1;
+    } else {
+      /* light shake even on small hits so contact reads */
+      shakeDecay=Math.max(shakeDecay,.35);
     }
   }
   function spawnDust(x,flY,isCD){
@@ -974,14 +980,82 @@ input[type=file]{display:none;}
         if(sp>5.0){fightState='STANDOFF';fightStateStart=t;deepAllied=false;attackTrig=0;}
 
       } else if(fightState==='WRESTLING'){
+        /* Real fight cycle while AI thinks: grapple → wind-up → strike → recover.
+           Cycle = 3.0s. Attacker alternates each cycle. Strike type cycles
+           through HOOK / UPPERCUT / JAB / BODY for variety. Every 5th cycle
+           the defender briefly stumbles to the ground. */
         const PI=Math.PI;
-        inCombat=false;
-        /* alternating sinusoidal push-pull, 1.8s period, 15px each */
-        const sway=Math.sin(sp*PI*2/1.8)*15;
-        lx=fcx-CLOSE+sway;rx=fcx+CLOSE-sway;
-        const wrestleLean=Math.sin(sp*PI*2/1.8)*.12;
-        lL={lAA:PI*.22-wrestleLean,lAE:.88,rAA:PI*.18-wrestleLean,rAE:.85,lLA:PI/2+.25,lLE:0,rLA:PI/2-.22,rLE:0};
-        rL={lAA:PI*.82+wrestleLean,lAE:.85,rAA:PI*.78+wrestleLean,rAE:.88,lLA:PI/2+.22,lLE:0,rLA:PI/2-.25,rLE:0};
+        inCombat=true;
+        const cycle=3.0;
+        const ph=sp%cycle;
+        const cyc=Math.floor(sp/cycle);
+        const isUserAtk=cyc%2===0;
+        const strikeKind=cyc%4;        // 0=hook 1=uppercut 2=jab 3=body
+        const stumble=(cyc>0&&cyc%5===4); // every 5th cycle, defender stumbles
+
+        if(ph<1.2){
+          /* GRAPPLE — alternating push-pull, 15px sway */
+          const sway=Math.sin(ph*PI*2/1.2)*15;
+          lx=fcx-CLOSE+sway;rx=fcx+CLOSE-sway;
+          const lean=Math.sin(ph*PI*2/1.2)*.12;
+          lL={lAA:PI*.22-lean,lAE:.88,rAA:PI*.18-lean,rAE:.85,lLA:PI/2+.25,lLE:0,rLA:PI/2-.22,rLE:0};
+          rL={lAA:PI*.82+lean,lAE:.85,rAA:PI*.78+lean,rAE:.88,lLA:PI/2+.22,lLE:0,rLA:PI/2-.25,rLE:0};
+
+        } else if(ph<1.55){
+          /* WIND-UP — break grip, cock back */
+          const wp=(ph-1.2)/.35;
+          lx=fcx-CLOSE-wp*8;rx=fcx+CLOSE+wp*8;
+          let atk;
+          if(strikeKind===0)      atk={lAA:PI*.66,lAE:.5,rAA:PI*.42+wp*.5,rAE:.3+wp*.5,lLA:PI/2+.22,lLE:0,rLA:PI/2-.15,rLE:0};
+          else if(strikeKind===1) atk={lAA:PI*.66,lAE:.4,rAA:PI*.92,rAE:.55,lLA:PI/2+.42,lLE:0,rLA:PI/2-.15,rLE:0};
+          else if(strikeKind===2) atk={lAA:PI*.66,lAE:.5,rAA:PI*.34,rAE:.4,lLA:PI/2+.22,lLE:0,rLA:PI/2-.15,rLE:0};
+          else                    atk={lAA:PI*.66,lAE:.4,rAA:PI*.55+wp*.2,rAE:.4,lLA:PI/2+.34,lLE:0,rLA:PI/2-.15,rLE:0};
+          const def={lAA:PI*.34,lAE:.55,rAA:PI*.28,rAE:.35,lLA:PI/2+.2,lLE:0,rLA:PI/2-.18,rLE:0};
+          if(isUserAtk){lL=atk;rL=def;}else{rL=atk;lL=def;}
+
+        } else if(ph<1.95){
+          /* STRIKE — punch fires; contact at peak (sp2~.5) */
+          const sp2=(ph-1.55)/.4;
+          const ext=Math.sin(sp2*PI);
+          let punchA;
+          if(strikeKind===0)      punchA=lerp(PI*.1,PI*.04,ext);   // hook horizontal
+          else if(strikeKind===1) punchA=lerp(PI*.92,-PI*.22,ext); // uppercut up
+          else if(strikeKind===2) punchA=lerp(PI*.32,-.06,ext);    // jab straight
+          else                    punchA=lerp(PI*.5,PI*.2,ext);    // body shot
+          const punchE=ext*.96;
+          const atkPose={lAA:PI*.6,lAE:.22,rAA:punchA,rAE:punchE,lLA:PI/2+.22,lLE:0,rLA:PI/2-.18,rLE:0};
+          const defPose={lAA:PI*.74,lAE:.18,rAA:PI*.88,rAE:.18,lLA:PI/2+.34,lLE:0,rLA:PI/2-.04,rLE:0};
+          const yOffset=strikeKind===1?-14:strikeKind===3?20:-26;
+          if(isUserAtk){
+            lx=fcx-CLOSE+ext*24;rx=fcx+CLOSE+ext*32;rRecoil=ext*.9;
+            lL=atkPose;rL=defPose;
+            if(sp2>.45&&sp2<.62&&!(attackTrig&(1<<(cyc%30)))){
+              spawnImpact((lx+rx)/2-6,fcy+yOffset,true);hitFlash=9;attackTrig|=(1<<(cyc%30));cdHP=Math.max(5,cdHP-7);
+            }
+          } else {
+            lx=fcx-CLOSE-ext*32;rx=fcx+CLOSE-ext*24;lRecoil=ext*.9;
+            rL=atkPose;lL=defPose;
+            if(sp2>.45&&sp2<.62&&!(attackTrig&(1<<(cyc%30)))){
+              spawnImpact((lx+rx)/2+6,fcy+yOffset,true);hitFlash=9;attackTrig|=(1<<(cyc%30));youHP=Math.max(5,youHP-7);
+            }
+          }
+
+        } else {
+          /* RECOVER — return to grapple, possibly with a stumble fall */
+          const rp=(ph-1.95)/1.05;
+          const settle=(1-rp)*10;
+          if(isUserAtk){lx=fcx-CLOSE+settle;rx=fcx+CLOSE+settle;}
+          else{lx=fcx-CLOSE-settle;rx=fcx+CLOSE-settle;}
+          if(stumble){
+            /* defender briefly falls and gets back up — visible knockdown */
+            const fall=Math.sin(Math.min(1,rp*1.3)*PI)*.8;
+            if(isUserAtk)rRecoil=fall*.6,cdFallen=fall*.55;
+            else lRecoil=fall*.6;
+          }
+          lL={lAA:PI*.22,lAE:.88,rAA:PI*.18,rAE:.85,lLA:PI/2+.25,lLE:0,rLA:PI/2-.22,rLE:0};
+          rL={lAA:PI*.82,lAE:.85,rAA:PI*.78,rAE:.88,lLA:PI/2+.22,lLE:0,rLA:PI/2-.25,rLE:0};
+        }
+
 
       } else if(fightState==='USER_STRIKE'){
         /* User robot lunges forward (60px in 80ms), CD staggers back 30px over 200ms.
@@ -1062,7 +1136,7 @@ input[type=file]{display:none;}
 
     /* Hit flash — brief screen brightness on heavy hit */
     if(hitFlash>0){
-      cx.fillStyle=`rgba(255,200,100,${hitFlash*.012})`;cx.fillRect(0,0,W,H);
+      cx.fillStyle=`rgba(255,200,100,${hitFlash*.022})`;cx.fillRect(0,0,W,H);
     }
 
     /* Rain lines — vertical, clearly visible */
@@ -1238,9 +1312,9 @@ input[type=file]{display:none;}
     /* Impacts */
     impacts=impacts.filter(p=>{
       if(p.ring){
-        p.ringR+=3.5;p.alpha-=.035;if(p.alpha<=0)return false;
+        p.ringR+=p.cy?5.2:4.2;p.alpha-=.038;if(p.alpha<=0)return false;
         cx.strokeStyle=p.cy?`rgba(0,212,170,${p.alpha})`:`rgba(255,107,43,${p.alpha})`;
-        cx.lineWidth=2;cx.beginPath();cx.arc(p.x,p.y,p.ringR,0,Math.PI*2);cx.stroke();
+        cx.lineWidth=p.cy?2:3;cx.beginPath();cx.arc(p.x,p.y,p.ringR,0,Math.PI*2);cx.stroke();
         return true;
       }
       p.x+=p.vx;p.y+=p.vy;p.vy+=.14;p.alpha-=.022;if(p.alpha<=0)return false;

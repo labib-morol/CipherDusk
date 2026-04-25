@@ -266,6 +266,7 @@ function parseResponse(text){
   const insight=get('INSIGHT');
   const rawQ=get('QUESTION');
   const verdict=get('FINAL_VERDICT')||get('DEEP VERDICT')||get('VERDICT');
+  const directive=get('DIRECTIVE');
   const decisionType=get('DECISION TYPE');
   const why=get('WHY');
   const risks=get('HIDDEN RISKS')||get('RISKS');
@@ -296,7 +297,7 @@ function parseResponse(text){
     question=cands[cands.length-1]||'What is really driving this decision?';
   }
 
-  return{confidence,insight,question,options,verdict,decisionType,why,risks,timeline,pattern,deepInsight,finalInsight,bestCase,worstCase};
+  return{confidence,insight,question,options,verdict,directive,decisionType,why,risks,timeline,pattern,deepInsight,finalInsight,bestCase,worstCase};
 }
 
 /* —— VERDICT HELPERS —— */
@@ -448,7 +449,16 @@ async function renderVerdict(fullText){
 
 function _appendVerdictResults(stage,parsed,fullText,conf){
   const verdictText=parsed.verdict||(fullText?'':'Analysis complete.');
-  const{main:mainLine,rest:mainRest}=verdictText?parseVerdictMainLine(verdictText):{main:'',rest:''};
+  /* If we have a DIRECTIVE, it IS the hero line — the full verdict text becomes
+     supporting context. Otherwise fall back to splitting the first sentence. */
+  let mainLine='',mainRest='';
+  if(parsed.directive){
+    mainLine=parsed.directive;
+    mainRest=verdictText;
+  } else if(verdictText){
+    const split=parseVerdictMainLine(verdictText);
+    mainLine=split.main;mainRest=split.rest;
+  }
   const ttsFull=(verdictText+(parsed.why?' Why: '+parsed.why:'')).replace(/<br>/g,' ');
   /* DECIDED word has already slid out — remove from layout */
   const dw=document.getElementById('decided-word');
@@ -630,7 +640,13 @@ function renderDeepVerdict(fullText){
   const parsed=parseResponse(fullText);
   const conf=parseInt(parsed.confidence)||0;
   setMobile('Deep Verdict');setSys('DEEP VERDICT','✓✓',conf||'—');
-  const {main:mainLine,rest:mainRest}=parsed.verdict?parseVerdictMainLine(parsed.verdict):{main:'',rest:''};
+  let mainLine='',mainRest='';
+  if(parsed.directive){
+    mainLine=parsed.directive;mainRest=parsed.verdict||'';
+  } else if(parsed.verdict){
+    const split=parseVerdictMainLine(parsed.verdict);
+    mainLine=split.main;mainRest=split.rest;
+  }
   const ttsFull=((parsed.verdict||'')+(parsed.why?' Why: '+parsed.why:'')).replace(/<br>/g,' ');
   /* Render the card shell + verdict box immediately */
   panel.innerHTML=`

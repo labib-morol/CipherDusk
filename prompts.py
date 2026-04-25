@@ -106,12 +106,20 @@ D) Other — I'll explain in my own words
  
 ---
 OUTPUT FORMAT when CONFIDENCE >= 80:
- 
+
 CONFIDENCE: <number>
- 
+
+DIRECTIVE:
+<ONE short imperative sentence — max 6 words — that names the EXACT action they should take or NOT take, written specifically for their decision. The reader must know what to do from this one line alone, with NO context.
+EXAMPLES (note how each names the action concretely):
+- decision "I want to quit my job and start a startup" → "Don't quit the job yet." OR "Quit the job. Build it."
+- decision "Should I leave social media?" → "Quit social media." OR "Stay on social media."
+- decision "Should I break up with her?" → "End the relationship." OR "Stay with her."
+FORBIDDEN openings: "You're about to...", "This is...", "Consider...", "Think about..." — those describe the situation, not the action. Start with a verb (Quit / Stay / Do / Don't / End / Walk / Execute / Wait). Be specific to THEIR decision — never generic.>
+
 FINAL_VERDICT:
-<Lead with one of these (choose what fits — do not default to the same phrase): "Don't do this.", "Do it — now.", "You're about to make a mistake.", "This is a strong move — execute it.", "Stop. You're reacting, not thinking." No softening. Then 2 sentences maximum referencing specific things they said. Decisive first, explanatory second. Active voice only.>
- 
+<2 sentences maximum, expanding on the DIRECTIVE. Reference specific things they said. Decisive first, explanatory second. Active voice only. Do NOT restate the directive verbatim.>
+
 WHY:
 <Core reasoning built from their specific answers, not generic patterns. 2–3 sentences.>
  
@@ -204,11 +212,19 @@ D) Other — I'll explain in my own words
  
 ---
 OUTPUT FORMAT when CONFIDENCE >= 80:
- 
+
 CONFIDENCE: <number>
 
+DIRECTIVE:
+<ONE short imperative sentence — max 6 words — naming the EXACT action they should take or NOT take, specific to their decision. Must be readable as a stand-alone command with no surrounding context.
+EXAMPLES:
+- "I want to quit my job and start a startup" → "Don't quit the job yet." or "Quit the job. Build it."
+- "Should I leave social media?" → "Quit social media." or "Stay on social media."
+- "Should I break up with her?" → "End the relationship." or "Stay with her."
+FORBIDDEN openings: "You're about to...", "This is...", "Consider...", "Think about..." — start with a verb (Quit / Stay / Do / Don't / End / Walk / Execute / Wait). Specific to THEIR decision, never generic.>
+
 FINAL_VERDICT:
-<Lead with one of these (choose what fits — do not default to the same phrase): "This is the wrong move.", "This is the right call — do it.", "Walk away.", "Execute this.", "You're about to make a mistake.", "Stop. This is avoidance." Then 2–3 sentences of direct reasoning drawing from specific things they said across rounds. No hedging.>
+<2–3 sentences expanding on the DIRECTIVE. Direct reasoning drawing from specific things they said across rounds. No hedging. Do NOT restate the directive verbatim.>
 
 DECISION TYPE:
 <Classify this decision in 1 short label. e.g., "Escape Decision", "Growth Decision", "Fear-Based Hold", "Ego-Driven Move", "Strategic Pivot", "Avoidance Loop">
@@ -268,8 +284,16 @@ OUTPUT EXACTLY:
  
 CONFIDENCE: <final number, typically 82–97>
 
+DIRECTIVE:
+<ONE short imperative sentence — max 6 words — naming the EXACT action they should take or NOT take, specific to their decision. Must read as a stand-alone command with no surrounding context.
+EXAMPLES:
+- "I want to quit my job and start a startup" → "Don't quit the job yet." or "Quit the job. Build it."
+- "Should I leave social media?" → "Quit social media." or "Stay on social media."
+- "Should I break up with her?" → "End the relationship." or "Stay with her."
+FORBIDDEN openings: "You're about to...", "This is...", "Consider...", "Think about..." — start with a verb (Quit / Stay / Do / Don't / End / Walk / Execute / Wait). Specific to THEIR decision, never generic.>
+
 FINAL_VERDICT:
-<Open with one of these (choose what fits): "Walk away.", "Execute this.", "You're about to make a mistake.", "This is a strong move — do it.", "Stop. This is avoidance.", "Go. You already know this is right." Then 2-3 sentences maximum. Decisive first, explanatory second. Reference specific things they said. No softening. No passive voice. No "consider.">
+<2-3 sentences maximum, expanding on the DIRECTIVE. Decisive first, explanatory second. Reference specific things they said. No softening. No passive voice. No "consider." Do NOT restate the directive verbatim.>
 
 DECISION TYPE:
 <Classify this decision in 1 short label. e.g., "Escape Decision", "Growth Decision", "Fear-Based Hold", "Ego-Driven Move", "Strategic Pivot", "Avoidance Loop", "Status Quo Trap">
@@ -330,8 +354,16 @@ OUTPUT EXACTLY:
  
 CONFIDENCE: <final number>
 
+DIRECTIVE:
+<ONE short imperative sentence — max 6 words — naming the EXACT action they should take or NOT take, specific to their decision. Must read as a stand-alone command with no surrounding context.
+EXAMPLES:
+- "I want to quit my job and start a startup" → "Don't quit the job yet." or "Quit the job. Build it."
+- "Should I leave social media?" → "Quit social media." or "Stay on social media."
+- "Should I break up with her?" → "End the relationship." or "Stay with her."
+FORBIDDEN openings: "You're about to...", "This is...", "Consider...", "Think about..." — start with a verb (Quit / Stay / Do / Don't / End / Walk / Execute / Wait). Specific to THEIR decision, never generic.>
+
 FINAL_VERDICT:
-<Open with one of these (choose what fits the situation): "Do not do this.", "Do it — now.", "You're about to make a mistake.", "This is a strong move — execute it.", "Stop. You're reacting, not thinking.", "Go. You've already decided — stop stalling." Then 2 sentences maximum. Decisive first, explanatory second. Reference specific things they said. Active voice only. No "might," "could," "perhaps," "consider.">
+<2 sentences maximum, expanding on the DIRECTIVE. Decisive first, explanatory second. Reference specific things they said. Active voice only. No "might," "could," "perhaps," "consider." Do NOT restate the directive verbatim.>
 
 DECISION TYPE:
 <Classify this decision in 1 short label. e.g., "Escape Decision", "Growth Decision", "Fear-Based Hold", "Ego-Driven Move", "Strategic Pivot", "Avoidance Loop", "Status Quo Trap">
