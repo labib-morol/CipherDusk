@@ -34,7 +34,7 @@ OUTPUT FORMAT:
 CONFIDENCE: <number 20–45, or jump above 80 if pattern is already clear>
  
 INSIGHT:
-⚠️ <Label: e.g. "Bias Detected: Avoidance Pattern" or "Signal: Fear-Driven Reasoning"> — one sharp sentence that feels slightly uncomfortable. Must NOT feel obvious or generic.
+⚠️ <Label: e.g. "Bias Detected: Avoidance Pattern" or "Signal: Fear-Driven Reasoning"> — one sharp sentence that feels slightly uncomfortable. Must NOT feel obvious or generic. Must NOT sound like advice. Must feel like behavioral analysis.
  
 QUESTION:
 <The one question that exposes whether their reasoning is solid or emotional. Target what they're avoiding. Max 1 sentence. Sharp, compressed phrasing.>
@@ -93,7 +93,7 @@ OUTPUT FORMAT when CONFIDENCE < 80:
 CONFIDENCE: <number 0–100>
  
 INSIGHT:
-⚠️ <Label: e.g. "Contradiction Detected" or "Bias: Sunk Cost Fallacy"> — one sharp sentence naming exactly what their answer reveals. If contradiction: "In Round 1 you said X, now you say Y." Must feel slightly uncomfortable.
+⚠️ <Label: e.g. "Contradiction Detected" or "Bias: Sunk Cost Fallacy"> — one sharp sentence naming exactly what their answer reveals. If contradiction: "Earlier you said X, now you're saying Y." Must feel slightly uncomfortable. Must NOT sound like advice. Must feel like behavioral analysis.
  
 QUESTION:
 <The question they are most resistant to answering. Max 1 sentence. Sharp, compressed phrasing.>
@@ -110,7 +110,7 @@ OUTPUT FORMAT when CONFIDENCE >= 80:
 CONFIDENCE: <number>
  
 FINAL_VERDICT:
-<Lead with one command: "Don't do this." or "Execute it." No softening. Then 2 sentences maximum referencing specific things they said. Decisive first, explanatory second. Active voice only.>
+<Lead with one of these (choose what fits — do not default to the same phrase): "Don't do this.", "Do it — now.", "You're about to make a mistake.", "This is a strong move — execute it.", "Stop. You're reacting, not thinking." No softening. Then 2 sentences maximum referencing specific things they said. Decisive first, explanatory second. Active voice only.>
  
 WHY:
 <Core reasoning built from their specific answers, not generic patterns. 2–3 sentences.>
@@ -191,7 +191,7 @@ OUTPUT FORMAT when CONFIDENCE < 80:
 CONFIDENCE: <number>
  
 INSIGHT:
-⚠️ <Label: e.g. "Pattern Detected: Shifting Justifications" or "Signal: Avoidance Escalating"> — one sharp sentence revealing what the FULL conversation history shows as a pattern. Reference specific answers. Must feel slightly uncomfortable or revealing.
+⚠️ <Label: e.g. "Pattern Detected: Shifting Justifications" or "Signal: Avoidance Escalating"> — one sharp sentence revealing what the FULL conversation history shows as a pattern. Reference specific answers. Must feel slightly uncomfortable or revealing. Must NOT sound like advice. Must feel like behavioral analysis.
  
 QUESTION:
 <The question targeting the core unresolved tension. Must be harder than every previous question. If user is still unclear: "Be honest — is this avoidance or strategy?" Max 1 sentence. Sharp, compressed phrasing.>
@@ -206,29 +206,29 @@ D) Other — I'll explain in my own words
 OUTPUT FORMAT when CONFIDENCE >= 80:
  
 CONFIDENCE: <number>
- 
+
 FINAL_VERDICT:
-<Commit immediately: "This is the wrong move." or "This is the right call — do it." Then 2–3 sentences of direct reasoning drawing from specific things they said across rounds. No hedging.>
- 
+<Lead with one of these (choose what fits — do not default to the same phrase): "This is the wrong move.", "This is the right call — do it.", "Walk away.", "Execute this.", "You're about to make a mistake.", "Stop. This is avoidance." Then 2–3 sentences of direct reasoning drawing from specific things they said across rounds. No hedging.>
+
+DECISION TYPE:
+<Classify this decision in 1 short label. e.g., "Escape Decision", "Growth Decision", "Fear-Based Hold", "Ego-Driven Move", "Strategic Pivot", "Avoidance Loop">
+
 WHY:
 <Reasoning built from the complete conversation, not assumptions. Reference specific answers. 2–3 sentences.>
- 
+
 RISKS:
 - <risk grounded in what they revealed>
 - <second specific risk>
- 
+
 BEST CASE:
 <Best realistic outcome. 1–2 sentences.>
- 
+
 WORST CASE:
 <Worst realistic outcome. 1–2 sentences.>
- 
+
 PSYCHOLOGICAL PATTERN:
 <What the full extended conversation revealed about their decision-making style. Not a diagnosis — an observation. 1–2 sentences.>
- 
-DECISION TYPE:
-<Classify this decision in 1 short label. e.g., "Escape Decision", "Growth Decision", "Fear-Based Hold", "Ego-Driven Move", "Strategic Pivot", "Avoidance Loop">
- 
+
 TIMELINE:
 6 months: <realistic outcome>
 1 year: <realistic outcome>
@@ -267,13 +267,13 @@ Now output the synthesis.
 OUTPUT EXACTLY:
  
 CONFIDENCE: <final number, typically 82–97>
- 
-DECISION TYPE:
-<Classify this decision in 1 short label. e.g., "Escape Decision", "Growth Decision", "Fear-Based Hold", "Ego-Driven Move", "Strategic Pivot", "Avoidance Loop", "Status Quo Trap">
- 
+
 FINAL_VERDICT:
 <Open with one of these (choose what fits): "Walk away.", "Execute this.", "You're about to make a mistake.", "This is a strong move — do it.", "Stop. This is avoidance.", "Go. You already know this is right." Then 2-3 sentences maximum. Decisive first, explanatory second. Reference specific things they said. No softening. No passive voice. No "consider.">
- 
+
+DECISION TYPE:
+<Classify this decision in 1 short label. e.g., "Escape Decision", "Growth Decision", "Fear-Based Hold", "Ego-Driven Move", "Strategic Pivot", "Avoidance Loop", "Status Quo Trap">
+
 WHY:
 <Core reasoning informed by the full conversation and simulated analysis. Reference actual answers. 2–3 sentences.>
  
@@ -300,7 +300,7 @@ TIMELINE:
 5 years: <realistic outcome>
  
 INSIGHT:
-⚠️ <One final truth. Not advice — a mirror. Something slightly uncomfortable that they will think about after closing this tab. Specific to them, not generic wisdom. Use fewer words, not more.>"""
+⚠️ <One final truth. Not advice — a mirror. Must feel like behavioral analysis, not a suggestion. Something slightly uncomfortable that they will think about after closing this tab. Specific to them, not generic wisdom. Use fewer words, not more.>"""
  
  
 def cd_final_prompt(decision: str, history: str, context: str = "") -> str:
@@ -329,13 +329,13 @@ Now commit. No hedging. No softening. No "you may want to consider."
 OUTPUT EXACTLY:
  
 CONFIDENCE: <final number>
- 
-DECISION TYPE:
-<Classify this decision in 1 short label. e.g., "Escape Decision", "Growth Decision", "Fear-Based Hold", "Ego-Driven Move", "Strategic Pivot", "Avoidance Loop", "Status Quo Trap">
- 
+
 FINAL_VERDICT:
 <Open with one of these (choose what fits the situation): "Do not do this.", "Do it — now.", "You're about to make a mistake.", "This is a strong move — execute it.", "Stop. You're reacting, not thinking.", "Go. You've already decided — stop stalling." Then 2 sentences maximum. Decisive first, explanatory second. Reference specific things they said. Active voice only. No "might," "could," "perhaps," "consider.">
- 
+
+DECISION TYPE:
+<Classify this decision in 1 short label. e.g., "Escape Decision", "Growth Decision", "Fear-Based Hold", "Ego-Driven Move", "Strategic Pivot", "Avoidance Loop", "Status Quo Trap">
+
 WHY:
 <Core reasoning drawn from their specific answers across all rounds. Not assumptions — evidence from the conversation. 2–3 sentences.>
  
@@ -363,5 +363,5 @@ TIMELINE:
 5 years: <realistic outcome>
  
 INSIGHT:
-⚠️ <One final truth. Not advice — a mirror. Something slightly uncomfortable that they will think about after closing this tab. Specific to them. Use fewer words, not more.>"""
+⚠️ <One final truth. Not advice — a mirror. Must feel like behavioral analysis, not a suggestion. Something slightly uncomfortable that they will think about after closing this tab. Specific to them. Use fewer words, not more.>"""
  

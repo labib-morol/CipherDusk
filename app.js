@@ -600,14 +600,16 @@ async function runDeepSummary(){
 
 function renderDeepVerdict(fullText){
   speakStop();
+  if(window.triggerVerdictVictory)window.triggerVerdictVictory();
   const parsed=parseResponse(fullText);
   const conf=parseInt(parsed.confidence)||0;
   setMobile('Deep Verdict');setSys('DEEP VERDICT','✓✓',conf||'—');
   const {main:mainLine,rest:mainRest}=parsed.verdict?parseVerdictMainLine(parsed.verdict):{main:'',rest:''};
   const ttsFull=((parsed.verdict||'')+(parsed.why?' Why: '+parsed.why:'')).replace(/<br>/g,' ');
+  /* Render the card shell + verdict box immediately */
   panel.innerHTML=`
     ${progressHTML()}
-    <div class="deep-verdict-card">
+    <div class="deep-verdict-card" id="dvc">
       <div class="verdict-stamp" style="color:var(--gr)">🌊</div>
       <div class="verdict-hdr-row">
         <div class="deep-verdict-title">DEEP VERDICT</div>
@@ -619,22 +621,35 @@ function renderDeepVerdict(fullText){
         ${mainLine?`<div class="verdict-mainline" style="color:var(--gr)">${esc(mainLine)}</div>`:''}
         ${mainRest?`<div class="verdict-text" style="margin-top:.45rem;opacity:.82">${esc(mainRest)}</div>`:''}
       </div>`:''}
-      <div class="v-acc-grid">
-        ${accSection('Why',parsed.why,'var(--gr)',0)}
-        ${accSection('Deep Insight',parsed.deepInsight,'var(--gr)',1)}
-        ${accSection('Hidden Risks',parsed.risks,'var(--gr)',2)}
-        ${accSection('Best Case',parsed.bestCase,'#22c55e',3)}
-        ${accSection('Worst Case',parsed.worstCase,'#ef4444',4)}
-        ${accSection('Timeline',parsed.timeline,'var(--gr)',5)}
-        ${accSection('Psychological Pattern',parsed.pattern,'var(--cy)',6)}
-      </div>
-    </div>
-    <div class="earned" style="border-color:var(--gr)">
-      <div class="earned-word" style="color:var(--gr)">DEEPER.</div>
-      <div class="earned-sub">Extended reflection complete. You went further than most.</div>
-    </div>
-    <button class="btn primary" onclick="reset()">↺ Analyze Another Decision</button>`;
+      <div class="v-acc-grid" id="dvc-grid"></div>
+    </div>`;
   if(conf)requestAnimationFrame(()=>animateConf(0,conf));
+  /* Progressive section reveal — 300ms stagger */
+  const sections=[
+    ['Why',parsed.why,'var(--gr)'],
+    ['Deep Insight',parsed.deepInsight,'var(--gr)'],
+    ['Hidden Risks',parsed.risks,'var(--gr)'],
+    ['Best Case',parsed.bestCase,'#22c55e'],
+    ['Worst Case',parsed.worstCase,'#ef4444'],
+    ['Timeline',parsed.timeline,'var(--gr)'],
+    ['Psychological Pattern',parsed.pattern,'var(--cy)'],
+  ].filter(([,c])=>c);
+  sections.forEach(([label,content,color],i)=>{
+    setTimeout(()=>{
+      const grid=document.getElementById('dvc-grid');
+      if(grid)grid.insertAdjacentHTML('beforeend',accSection(label,content,color,0));
+    },i*300);
+  });
+  /* DEEPER. block after all sections */
+  const endDelay=sections.length*300+300;
+  setTimeout(()=>{
+    panel.insertAdjacentHTML('beforeend',`
+      <div class="earned" style="border-color:var(--gr)">
+        <div class="earned-word" style="color:var(--gr);animation:pulseIn .6s cubic-bezier(.2,2,.4,1) both">DEEPER.</div>
+        <div class="earned-sub">Extended reflection complete. You went further than most.</div>
+      </div>
+      <button class="btn primary" onclick="reset()">↺ Analyze Another Decision</button>`);
+  },endDelay);
   insightPanel.innerHTML=`<div class="insight-card" style="border-color:var(--gr)">
     <div class="insight-icon">🌊</div><div class="insight-title" style="color:var(--gr)">Deep Dive Complete</div>
     <div class="insight-body">Three levels deeper. The reflection surfaced what the surface missed.</div>
@@ -688,6 +703,7 @@ async function handleFile(input){
 
 /* —— STREAM —— */
 async function streamTo(body,onToken,onDone){
+  if(window.setWaitingForAI)window.setWaitingForAI(true);
   let full='',first=true;
   try{
     const res=await fetch('/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
@@ -698,12 +714,21 @@ async function streamTo(body,onToken,onDone){
         if(!line.startsWith('data:'))continue;
         try{
           const d=JSON.parse(line.slice(5));full+=d.token;
-          if(first){const el=document.getElementById('stream-prev');if(el)el.innerHTML='';first=false;}
+          if(first){
+            const el=document.getElementById('stream-prev');
+            if(el){el.innerHTML='';el.classList.add('streaming-cursor');}
+            first=false;
+          }
+          const el=document.getElementById('stream-prev');
+          if(el)el.textContent=full;
           onToken(full);
         }catch(e){}
       }
     }
   }catch(e){full='Connection error. Make sure the server is running.';}
+  const el=document.getElementById('stream-prev');
+  if(el)el.classList.remove('streaming-cursor');
+  if(window.setWaitingForAI)window.setWaitingForAI(false);
   onDone(full);
 }
 
@@ -763,6 +788,7 @@ async function submitAnswer(){
       chat.push({role:'ai',content:full});
       const parsed=parseResponse(full);
       const conf=parseInt(parsed.confidence)||0;
+      if(conf>0&&window.setUserHP)window.setUserHP(100-conf);
       if(conf>=80||mode==='cd_final'){
         if(parsed.verdict||mode==='cd_final'){stage=99;saveHistory(full);transitionOut(()=>renderVerdict(full));}
         else forceFinalVerdict(histStr);
