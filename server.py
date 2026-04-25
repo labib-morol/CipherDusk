@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.responses import StreamingResponse, FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import requests, json, os
+from dotenv import load_dotenv
+load_dotenv()
 
 from prompts import cd_round1_prompt, cd_round2_prompt, cd_deep_prompt, cd_final_prompt, cd_deep_summary_prompt
 
@@ -50,6 +52,14 @@ def root():
     if not os.path.exists(INDEX_PATH):
         return JSONResponse({"error": f"index.html not found at {INDEX_PATH}"}, status_code=500)
     return FileResponse(INDEX_PATH)
+
+
+@app.get("/app.js")
+def serve_appjs():
+    path = os.path.join(BASE_DIR, "app.js")
+    if not os.path.exists(path):
+        return JSONResponse({"error": "app.js not found"}, status_code=404)
+    return FileResponse(path, media_type="application/javascript")
 
 
 @app.post("/run")

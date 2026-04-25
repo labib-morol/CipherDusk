@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(head -n 898 index.html)",
+      "Bash(printf '</script>\\\\n<script src=\"app.js\"></script>\\\\n</body>\\\\n</html>\\\\n')",
+      "Bash(cp /tmp/idx_new.html index.html)"
+    ]
+  }
+}

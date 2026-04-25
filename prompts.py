@@ -65,17 +65,21 @@ D) Other — I'll explain myself
 If CONFIDENCE >= 80, output this instead:
  
 CONFIDENCE: <number>
-VERDICT: <direct recommendation — 3-4 sentences>
+VERDICT: <Start with a blunt verdict statement like "Don't do this." or "This is the right move." Then 2-3 sentences explaining it. Zero hedging. Active declarative language only — never "you may want to consider".>
 WHY: <core reasoning>
 RISKS:
 - <risk 1>
 - <risk 2>
+BEST CASE:
+<Best realistic outcome if this goes well. 1-2 sentences.>
+WORST CASE:
+<Worst realistic outcome if this goes wrong. 1-2 sentences.>
 TIMELINE:
 6 months: <outcome>
 1 year: <outcome>
 5 years: <outcome>"""
- 
- 
+
+
 def cd_deep_prompt(decision: str, history: str, context: str = "", iteration: int = 1) -> str:
     ctx = f"\nContext:\n{context}" if context else ""
     depth = {1:"FIRST",2:"SECOND",3:"THIRD"}.get(iteration,"NEXT")
@@ -109,17 +113,21 @@ D) Other — I'll explain myself
 If CONFIDENCE >= 80:
  
 CONFIDENCE: <number>
-VERDICT: <recommendation>
+VERDICT: <Open with a blunt, one-sentence verdict: "This is a mistake." or "Do this now." Then 2 sentences backing it up. No hedging.>
 WHY: <reasoning>
 RISKS:
 - <risk 1>
 - <risk 2>
+BEST CASE:
+<Best realistic outcome if this goes well. 1-2 sentences.>
+WORST CASE:
+<Worst realistic outcome if this goes wrong. 1-2 sentences.>
 TIMELINE:
 6 months: <outcome>
 1 year: <outcome>
 5 years: <outcome>"""
- 
- 
+
+
 def cd_deep_summary_prompt(decision: str, history: str, context: str = "") -> str:
     ctx = f"\nContext:\n{context}" if context else ""
     return f"""You are CipherDusk completing a Deep Dive analysis.
@@ -136,7 +144,7 @@ OUTPUT EXACTLY:
 CONFIDENCE: <final number>
 
 DEEP VERDICT:
-<Updated or reinforced recommendation based on the deeper conversation. 3-4 sentences. Be direct.>
+<Start with the definitive verdict: "This is the right call." or "Walk away from this." Commit fully. 3-4 sentences of direct, unsoftened reasoning. The deep dive earns the sharpest possible take.>
 
 WHY:
 <Core reasoning, now informed by the deep dive. 2-3 sentences.>
@@ -151,6 +159,12 @@ HIDDEN RISKS:
 
 PSYCHOLOGICAL PATTERN:
 <The deepest thing the extended conversation revealed about their mindset. 1-2 sentences.>
+
+BEST CASE:
+<Best realistic outcome if this goes well. 1-2 sentences.>
+
+WORST CASE:
+<Worst realistic outcome if this goes wrong. 1-2 sentences.>
 
 TIMELINE:
 6 months: <realistic outcome>
@@ -177,7 +191,7 @@ OUTPUT EXACTLY:
 CONFIDENCE: <final number>
  
 VERDICT:
-<Direct honest recommendation. 3-4 sentences. No hedging. Speak like a sharp mentor.>
+<Lead with a verdict sentence that commits: "This is not the right decision right now." or "Do it — here is why." Then 3 sentences with sharp reasoning. No softening language. No "consider", no "might", no "potentially". Say what you actually think.>
  
 WHY:
 <Core reasoning based on everything they said. 2-3 sentences.>
@@ -190,14 +204,20 @@ HIDDEN RISKS:
 - <risk 1>
 - <risk 2>
 - <risk 3>
- 
+
+BEST CASE:
+<Best realistic outcome if this goes well. 1-2 sentences.>
+
+WORST CASE:
+<Worst realistic outcome if this goes wrong. 1-2 sentences.>
+
 PSYCHOLOGICAL PATTERN:
 <The deepest thing their answers revealed about their mindset. 1-2 sentences.>
- 
+
 TIMELINE:
 6 months: <realistic outcome>
 1 year: <realistic outcome>
 5 years: <realistic outcome>
- 
+
 INSIGHT:
 <One final thing they should carry with them. Make it memorable.>"""
